@@ -1,0 +1,119 @@
+{
+  "owner": "Quat",
+  "currency": "VND",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "version": "1.0",
+  "last_updated": "2025-08-16T09:40:00Z",
+  "positions": [
+    {
+      "ticker": "FPT",
+      "exchange": "HOSE",
+      "shares": 115,
+      "avg_price": 103620,
+      "target_price": 130000,
+      "max_drawdown_pct": -12,
+      "notes": "Technology leader, strong fundamentals",
+      "date_added": "2024-12-01T00:00:00Z"
+    },
+    {
+      "ticker": "VCB",
+      "exchange": "HOSE",
+      "shares": 100,
+      "avg_price": 58130,
+      "target_price": 70000,
+      "max_drawdown_pct": -15,
+      "notes": "Top commercial bank, solid dividend",
+      "date_added": "2024-11-20T00:00:00Z"
+    },
+    {
+      "ticker": "TCB",
+      "exchange": "HOSE",
+      "shares": 70,
+      "avg_price": 35090,
+      "target_price": 45000,
+      "max_drawdown_pct": -18,
+      "notes": "Commercial bank, high dividend yield",
+      "date_added": "2024-10-15T00:00:00Z"
+    },
+    {
+      "ticker": "ACB",
+      "exchange": "HOSE",
+      "shares": 40,
+      "avg_price": 22230,
+      "target_price": 26400,
+      "max_drawdown_pct": -20,
+      "notes": "Asia Commercial Bank, growth potential",
+      "date_added": "2024-09-10T00:00:00Z"
+    },
+    {
+      "ticker": "BID",
+      "exchange": "HOSE",
+      "shares": 20,
+      "avg_price": 36030,
+      "target_price": 44200,
+      "max_drawdown_pct": -15,
+      "notes": "BIDV - Large state-owned bank",
+      "date_added": "2024-08-25T00:00:00Z"
+    },
+    {
+      "ticker": "HPG",
+      "exchange": "HOSE",
+      "shares": 70,
+      "avg_price": 22870,
+      "target_price": 30000,
+      "max_drawdown_pct": -20,
+      "notes": "Steel producer, cyclical play",
+      "date_added": "2024-07-30T00:00:00Z"
+    },
+    {
+      "ticker": "MSN",
+      "exchange": "HOSE",
+      "shares": 30,
+      "avg_price": 72070,
+      "target_price": 85000,
+      "max_drawdown_pct": -15,
+      "notes": "Masan Group, FMCG conglomerate",
+      "date_added": "2024-06-15T00:00:00Z"
+    },
+    {
+      "ticker": "VNM",
+      "exchange": "HOSE",
+      "shares": 32,
+      "avg_price": 56550,
+      "target_price": 70000,
+      "max_drawdown_pct": -10,
+      "notes": "Consumer staples, dividend play",
+      "date_added": "2024-11-15T00:00:00Z"
+    },
+    {
+      "ticker": "KDH",
+      "exchange": "HOSE",
+      "shares": 22,
+      "avg_price": 27020,
+      "target_price": 34000,
+      "max_drawdown_pct": -18,
+      "notes": "Khang Dien House, real estate developer",
+      "date_added": "2024-05-20T00:00:00Z"
+    },
+    {
+      "ticker": "HDG",
+      "exchange": "HOSE",
+      "shares": 27,
+      "avg_price": 24830,
+      "target_price": 30000,
+      "max_drawdown_pct": -17,
+      "notes": "Hoa Phat Group, steel and real estate",
+      "date_added": "2024-04-10T00:00:00Z"
+    },
+    {
+      "ticker": "CMG",
+      "exchange": "HOSE",
+      "shares": 15,
+      "avg_price": 36230,
+      "target_price": 44000,
+      "max_drawdown_pct": -16,
+      "notes": "CMC Group, IT services and solutions",
+      "date_added": "2024-03-05T00:00:00Z"
+    }
+  ]
+}

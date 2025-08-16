@@ -1,0 +1,13 @@
+[Unit]
+Description=VN Stock Advisory Notifier
+After=network.target
+
+[Service]
+User=your_username
+WorkingDirectory=/path/to/vn-stock-advisory
+ExecStart=/path/to/venv/bin/python src/app.py
+Restart=always
+Environment=ENV_FILE=/path/to/.env
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  # Main scheduler service
+  vn-stock-advisory:
+    build: .
+    container_name: vn-stock-advisory
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./output:/app/output
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD", "python3", "-c", "print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

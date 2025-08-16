@@ -1,0 +1,9 @@
+{
+  "owner": "Quat",
+  "currency": "VND",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "positions": [
+    { "ticker": "FPT", "exchange": "HOSE", "shares": 500, "avg_price": 121000, "target_price": 145000, "max_drawdown_pct": -12 },
+    { "ticker": "VNM", "exchange": "HOSE", "shares": 300, "avg_price": 68000, "target_price": 80000, "max_drawdown_pct": -10 }
+  ]
+}

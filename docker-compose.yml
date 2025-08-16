@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  vn-stock-advisory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: vn-stock-advisory
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./output:/app/output:rw
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Ho_Chi_Minh
+    ports:
+      - "${API_PORT:-8000}:8000"
+    networks:
+      - vn-stock-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    command: ["python", "-m", "src.app", "--mode", "api"]
+    
+  # Development service with hot-reload
+  vn-stock-advisory-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: vn-stock-advisory-dev
+    restart: "no"
+    volumes:
+      - ./src:/app/src:rw
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./tests:/app/tests:rw
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Ho_Chi_Minh
+      - DEBUG=true
+    ports:
+      - "${DEV_API_PORT:-8001}:8000"
+    networks:
+      - vn-stock-network
+    command: ["python", "-m", "src.app", "--mode", "api", "--reload"]
+    profiles:
+      - dev
+
+  # Scheduler-only service (no API)
+  vn-stock-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: vn-stock-scheduler
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./output:/app/output:rw
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - vn-stock-network
+    command: ["python", "-m", "src.app", "--mode", "scheduler"]
+    profiles:
+      - scheduler-only
+
+  # Redis cache for improved performance (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: vn-stock-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - vn-stock-network
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    profiles:
+      - cache
+
+  # PostgreSQL for future data persistence (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: vn-stock-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-vnstock}
+      POSTGRES_USER: ${DB_USER:-vnstock}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vnstock_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vn-stock-network
+    profiles:
+      - database
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  vn-stock-network:
+    driver: bridge
+    name: vn-stock-network
