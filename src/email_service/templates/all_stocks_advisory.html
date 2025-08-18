@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 Daily Stock Advisory - {{ date }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .main-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+        }
+        .date-info {
+            font-size: 1.1em;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+
+        .toc {
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+        .toc a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .summary-table th, .summary-table td {
+            border: 1px solid #e9ecef;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .summary-table th {
+            background-color: #f8f9fa;
+        }
+
+        .stock-section {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin: 30px 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .stock-header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .stock-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ticker-name {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        .exchange {
+            background-color: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+        
+        .stock-body {
+            padding: 20px;
+        }
+        
+        .price-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .current-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        .price-change {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        .neutral { color: #6c757d; }
+        
+        .advisory-section {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .action-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .action-hold { background-color: #6c757d; }
+        .action-add { background-color: #28a745; }
+        .action-add_small { background-color: #20c997; }
+        .action-trim { background-color: #fd7e14; }
+        .action-take_profit { background-color: #17a2b8; }
+        .action-reduce { background-color: #ffc107; color: black; }
+        .action-exit { background-color: #dc3545; }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .metric-label {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .signals-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        .signals-list li {
+            background-color: #e7f3ff;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+            font-size: 0.9em;
+        }
+        
+        .risk-alert {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .summary-section {
+            background-color: #e8f4f8;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9em;
+            color: #6c757d;
+            text-align: center;
+        }
+        
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+            .stock-info { flex-direction: column; text-align: center; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+            .main-title { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">📈 Daily Stock Advisory</h1>
+            <div class="date-info">{{ date }} • {{ portfolio.positions|length }} Positions</div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <strong>Quick Navigation:</strong>
+            {% for advisory in stock_advisories %}
+                <a href="#{{ advisory.position.ticker }}">{{ advisory.position.ticker }}</a>{% if not loop.last %} • {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Summary Table -->
+        <table class="summary-table">
+            <tr>
+                <th>Ticker</th>
+                <th>Action</th>
+                <th>To Target</th>
+                <th>P/L %</th>
+            </tr>
+            {% for advisory in stock_advisories %}
+            <tr>
+                <td><a href="#{{ advisory.position.ticker }}">{{ advisory.position.ticker }}</a></td>
+                <td><span class="action-badge action-{{ advisory.advisory.get('action', 'hold') }}">{{ advisory.advisory.get('action', 'N/A').replace('_', ' ') }}</span></td>
+                <td>{{ "{:.1f}".format(((advisory.position.target_price / advisory.market_data.price) - 1) * 100) }}%</td>
+                <td>{{ "{:.2f}".format(advisory.performance.pl_pct) }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <!-- Portfolio Summary -->
+        <div class="summary-section">
+            <h2>📊 Portfolio Summary</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value {{ 'positive' if portfolio_metrics.total_pl_pct >= 0 else 'negative' }}">
+                        {{ "+" if portfolio_metrics.total_pl_pct >= 0 else "" }}{{ "{:.2f}".format(portfolio_metrics.total_pl_pct) }}%
+                    </div>
+                    <div class="metric-label">Total P/L</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ "{:,.0f}".format(portfolio_metrics.total_value) }}</div>
+                    <div class="metric-label">Total Value (VND)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ "{:,.0f}".format(portfolio_metrics.total_pl) }}</div>
+                    <div class="metric-label">Total P/L (VND)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">{{ portfolio.positions|length }}</div>
+                    <div class="metric-label">Positions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Stock Analysis -->
+        {% for advisory in stock_advisories %}
+        <div class="stock-section" id="{{ advisory.position.ticker }}">
+            <div class="stock-header">
+                <div class="stock-info">
+                    <div>
+                        <div class="ticker-name">{{ advisory.position.ticker }}</div>
+                        <div class="exchange">{{ advisory.position.exchange }}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9em;">{{ advisory.position.shares }} shares</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stock-body">
+                <div class="price-section">
+                    <div class="current-price">{{ "{:,.0f}".format(advisory.market_data.price) }} VND</div>
+                    <div class="price-change {{ 'positive' if advisory.market_data.change >= 0 else 'negative' }}">
+                        {{ "+" if advisory.market_data.change >= 0 else "" }}{{ "{:,.0f}".format(advisory.market_data.change) }} VND 
+                        ({{ "+" if advisory.market_data.change_pct >= 0 else "" }}{{ "{:.2f}".format(advisory.market_data.change_pct) }}%)
+                    </div>
+                </div>
+
+                {% if advisory.advisory %}
+                <div class="advisory-section">
+                    <h4>🎯 Recommendation</h4>
+                    <span class="action-badge action-{{ advisory.advisory.get('action', 'hold') }}">
+                        {{ advisory.advisory.get('action', 'N/A').replace('_', ' ') }}
+                    </span>
+                    {% if advisory.advisory.get('rationale') %}
+                    <p><strong>Rationale:</strong> {{ advisory.advisory.rationale }}</p>
+                    {% endif %}
+                    
+                    {% if advisory.advisory.get('risk_notes') %}
+                    <div class="risk-alert">
+                        <strong>⚠️ Risk:</strong> {{ advisory.advisory.risk_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value {{ 'positive' if advisory.performance.pl_pct >= 0 else 'negative' }}">
+                            {{ "+" if advisory.performance.pl_pct >= 0 else "" }}{{ "{:.2f}".format(advisory.performance.pl_pct) }}%
+                        </div>
+                        <div class="metric-label">P/L vs Avg</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "{:.1f}".format(((advisory.position.target_price / advisory.market_data.price) - 1) * 100) }}%</div>
+                        <div class="metric-label">To Target</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "{:,.0f}".format(advisory.performance.total_value) }}</div>
+                        <div class="metric-label">Value (VND)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "{:,.0f}".format(advisory.position.avg_price) }}</div>
+                        <div class="metric-label">Avg Price</div>
+                    </div>
+                </div>
+
+                {% if advisory.advisory and advisory.advisory.get('key_signals') %}
+                <h4>🔍 Key Signals</h4>
+                <ul class="signals-list">
+                    {% for signal in advisory.advisory.key_signals %}
+                    <li>{{ signal }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if advisory.advisory and advisory.advisory.get('levels') %}
+                <h4>💰 Price Levels</h4>
+                <div class="info-box">
+                    {% if advisory.advisory.levels.get('add_zone') %}
+                    <p><strong>Add Zone:</strong> {{ advisory.advisory.levels.add_zone }}</p>
+                    {% endif %}
+                    {% if advisory.advisory.levels.get('take_profit_zone') %}
+                    <p><strong>Take Profit:</strong> {{ advisory.advisory.levels.take_profit_zone }}</p>
+                    {% endif %}
+                    {% if advisory.advisory.levels.get('hard_stop') %}
+                    <p><strong>Hard Stop:</strong> {{ advisory.advisory.levels.hard_stop }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if advisory.advisory and advisory.advisory.get('next_checks') %}
+                <h4>📋 Next Checks</h4>
+                <ul class="signals-list">
+                    {% for check in advisory.advisory.next_checks %}
+                    <li>{{ check }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="footer">
+            <p>This analysis is generated automatically and should not be considered as investment advice. 
+               Please conduct your own research and consult with a financial advisor before making investment decisions.</p>
+            <p><em>Generated by VN Stock Advisory Notifier • {{ date }}</em></p>
+        </div>
+    </div>
+</body>
+</html>
