@@ -1,18 +1,14 @@
-# Core web framework - Python 3.6 compatible versions
+# Core web framework
 FastAPI==0.68.2
 uvicorn==0.15.0
 
-# Data validation and models
+# Data validation and configuration
 pydantic==1.9.2
 python-dotenv==0.19.2
 
-# HTTP client and server utilities
+# HTTP client libraries
 httpx==0.22.0
 requests==2.27.1
-
-# Database (optional for future features)
-sqlalchemy==1.3.24
-alembic==1.7.7
 
 # Scheduling and background tasks
 APScheduler==3.9.1
@@ -35,21 +31,9 @@ numpy==1.19.5
 
 # Technical analysis
 ta==0.10.2
-yfinance==0.1.87
-
-# Visualization (for potential chart generation)
-plotly==5.11.0
 
 # Error handling and retries
 tenacity==8.1.0
-
-# Testing
-pytest==7.2.2
-pytest-asyncio==0.20.3
-pytest-mock==3.10.0
-
-# AI/LLM integration - Only Google Gemini
-# No OpenAI dependency needed
 
 # Logging enhancements
 structlog==22.3.0
@@ -57,3 +41,8 @@ structlog==22.3.0
 # CLI interface
 click==8.0.4
 rich==12.6.0
+
+# Testing (development only)
+pytest==7.2.2
+pytest-asyncio==0.20.3
+pytest-mock==3.10.0

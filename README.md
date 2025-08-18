@@ -1,122 +1,201 @@
 # VN Stock Advisory Notifier
 
-## Overview
-The VN Stock Advisory Notifier is a background application designed to analyze your Vietnam stock holdings daily. It fetches market data, generates actionable advice using AI, and sends detailed email notifications for each stock as well as an overall portfolio summary.
+A production-ready Python application that analyzes Vietnam stock portfolios daily using Google Gemini AI and sends actionable advisory emails with AI fallback for price data when APIs fail.
 
 ## Features
-- Daily analysis of stock holdings from HOSE, HNX, and UPCoM.
-- AI-driven advisory for each stock based on current market data and user-defined parameters.
-- Email notifications with detailed stock insights and portfolio overview.
-- Configurable scheduling to run at a specified local time.
-- Support for multiple data providers, including mock and real data sources.
 
-## Project Structure
-```
-vn-stock-advisory
-├── src
-│   ├── app.py
-│   ├── config
-│   │   ├── __init__.py
-│   │   └── settings.py
-│   ├── adapters
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── mock_provider.py
-│   │   └── vn_data_provider.py
-│   ├── advisory
-│   │   ├── __init__.py
-│   │   ├── engine.py
-│   │   ├── indicators.py
-│   │   └── ai_advisor.py
-│   ├── email
-│   │   ├── __init__.py
-│   │   ├── sender.py
-│   │   └── templates
-│   │       ├── stock_detail.html
-│   │       └── portfolio_overview.html
-│   ├── scheduler
-│   │   ├── __init__.py
-│   │   └── jobs.py
-│   ├── models
-│   │   ├── __init__.py
-│   │   ├── holdings.py
-│   │   └── market_data.py
-│   └── utils
-│       ├── __init__.py
-│       ├── logger.py
-│       └── helpers.py
-├── tests
-│   ├── __init__.py
-│   ├── test_adapters.py
-│   ├── test_advisory.py
-│   ├── test_email.py
-│   └── fixtures
-│       └── sample_holdings.json
-├── data
-│   └── holdings.json
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── deployment
-│   ├── systemd
-│   │   └── vn-stock-advisory.service
-│   └── docker-deploy.sh
-└── README.md
+- **Daily Stock Analysis**: Automated analysis of Vietnam stock holdings (HOSE/HNX/UPCoM)
+- **AI-Powered Insights**: Uses Google Gemini AI for comprehensive portfolio and stock analysis
+- **Enhanced Portfolio Overview**: Detailed AI insights including risk analysis, performance insights, strategic recommendations, and market context
+- **Multiple Data Sources**: Primary SSI API with CafeF fallback, plus AI-powered price estimation when APIs fail
+- **Email Notifications**: Beautiful HTML emails for individual stocks and portfolio overview
+- **Configurable Scheduling**: Daily analysis at your preferred time with cron-style scheduling
+- **Risk Management**: Stop-loss suggestions, concentration risk alerts, position sizing recommendations
+- **Docker Support**: Easy deployment with Docker and Docker Compose
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Python 3.6+
+- Google Gemini API key
+- SMTP email credentials (Gmail recommended)
+
+### 2. Installation
+
+```bash
+git clone <repository>
+cd vn-stock-service
+pip install -r requirements.txt
 ```
 
-## Setup Instructions
-1. **Clone the Repository**
-   ```
-   git clone <repository-url>
-   cd vn-stock-advisory
-   ```
+### 3. Configuration
 
-2. **Install Dependencies**
-   ```
-   pip install -r requirements.txt
-   ```
+Copy `.env.example` to `.env` and configure:
 
-3. **Configure Environment Variables**
-   Copy `.env.example` to `.env` and fill in the required values:
-   ```
-   VN_DATA_PROVIDER=mock|provider1
-   SCHEDULE_CRON=30 7 * * *
-   SMTP_HOST=<your_smtp_host>
-   SMTP_PORT=<your_smtp_port>
-   SMTP_USER=<your_smtp_user>
-   SMTP_PASS=<your_smtp_password>
-   MAIL_TO=<your_email>
-   LLM_PROVIDER=<your_llm_provider>
-   LLM_API_KEY=<your_llm_api_key>
-   ```
+```bash
+# Required: Gemini AI API
+LLM_PROVIDER=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+LLM_API_KEY=your_gemini_api_key_here
 
-4. **Run the Application**
-   You can run the application locally using:
-   ```
-   python src/app.py
-   ```
+# Required: Email Settings
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+MAIL_TO=your_email@gmail.com
 
-5. **Docker Deployment**
-   To build and run the application using Docker:
-   ```
-   docker-compose up --build
-   ```
+# Schedule (7:30 AM daily by default)
+SCHEDULE_CRON=30 7 * * *
+TIMEZONE=Asia/Ho_Chi_Minh
+
+# Set to false to send real emails
+DRY_RUN=true
+```
+
+### 4. Portfolio Setup
+
+Edit `data/holdings.json` with your positions:
+
+```json
+{
+  "owner": "Your Name",
+  "currency": "VND",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "positions": [
+    {
+      "ticker": "FPT",
+      "exchange": "HOSE",
+      "shares": 100,
+      "avg_price": 125000,
+      "target_price": 145000,
+      "max_drawdown_pct": -12,
+      "notes": "Technology leader"
+    }
+  ]
+}
+```
+
+### 5. Usage
+
+```bash
+# Test the system
+python3 main.py
+
+# Run manual analysis
+python3 run_manual.py
+
+# Start scheduler
+python3 run_scheduler.py
+
+# Docker deployment
+docker-compose up --build
+```
+
+## Data Sources & AI Fallback
+
+The system uses a robust fallback chain for price data:
+
+1. **Primary**: SSI (Sài Gòn Securities) FastConnect API
+2. **Fallback**: CafeF.vn web scraping
+3. **AI Fallback**: Google Gemini AI for price estimation when APIs fail
+4. **Basic Fallback**: Hardcoded estimates for common Vietnamese stocks
+
+## Enhanced AI Portfolio Insights
+
+The system now provides comprehensive AI-powered portfolio analysis including:
+
+- **Overall Assessment**: Professional portfolio health summary
+- **Performance Insights**: P/L analysis, best/worst performers, momentum stocks
+- **Risk Analysis**: Concentration risks, sector exposure, correlation analysis with risk scoring
+- **Strategic Recommendations**: Immediate actions, rebalancing advice, sector allocation, market timing
+- **Market Context**: Vietnam market outlook, sector trends, macro factors
 
 ## Environment Variables
-- `VN_DATA_PROVIDER`: Specifies the data provider to use (mock or real).
-- `SCHEDULE_CRON`: Cron expression for scheduling the daily analysis.
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP configuration for sending emails.
-- `MAIL_TO`: Email address for receiving notifications.
-- `LLM_PROVIDER`, `LLM_API_KEY`: Configuration for the AI model provider.
 
-## Troubleshooting Tips
-- Ensure all environment variables are set correctly.
-- Check the logs for any errors during execution.
-- If using a real data provider, verify API access and permissions.
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LLM_PROVIDER` | Gemini API endpoint | Required |
+| `LLM_API_KEY` | Google Gemini API key | Required |
+| `SMTP_HOST` | Email server hostname | Required |
+| `SMTP_USER` | Email username | Required |
+| `SMTP_PASS` | Email password/app password | Required |
+| `MAIL_TO` | Recipient email | Required |
+| `SCHEDULE_CRON` | Cron schedule | `30 7 * * *` |
+| `TIMEZONE` | Timezone | `Asia/Ho_Chi_Minh` |
+| `DRY_RUN` | Safe testing mode | `true` |
+| `VN_DATA_PROVIDER` | Data source | `mock` |
 
-## Contribution
-Feel free to contribute to the project by submitting issues or pull requests. Your feedback and suggestions are welcome!
+## Project Structure
+
+```
+vn-stock-service/
+├── src/
+│   ├── adapters/          # Data providers (SSI, CafeF, AI fallback)
+│   ├── advisory/          # AI analysis engine
+│   ├── config/            # Configuration management
+│   ├── email_service/     # Email templates and sending
+│   ├── models/            # Data models
+│   ├── scheduler/         # Task scheduling
+│   └── utils/             # Utilities
+├── data/                  # Portfolio data
+├── deployment/            # Docker and systemd configs
+├── tests/                 # Unit tests
+└── requirements.txt       # Dependencies
+```
+
+## Deployment Options
+
+### Docker
+```bash
+docker-compose up -d
+```
+
+### Systemd (Linux)
+```bash
+sudo cp deployment/systemd/vn-stock-advisory.service /etc/systemd/system/
+sudo systemctl enable vn-stock-advisory
+sudo systemctl start vn-stock-advisory
+```
+
+## AI Advisory Actions
+
+- `hold`: Maintain current position
+- `add_small`: Add small position
+- `add`: Increase position
+- `trim`: Reduce position slightly
+- `take_profit`: Take profits at target
+- `reduce`: Significantly reduce position
+- `exit`: Close position entirely
+
+## Troubleshooting
+
+### Gemini API Issues
+- Verify API key is correct and active
+- Check API quotas and limits
+- Test connectivity with `python3 test_gemini.py`
+
+### Email Issues
+- Use App Passwords for Gmail (not regular password)
+- Enable 2FA and generate app-specific password
+- Check SMTP settings and firewall
+
+### Data Provider Issues
+- SSI API may have rate limits
+- CafeF scraping requires stable internet
+- AI fallback provides estimates when both fail
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes and add tests
+4. Submit a pull request
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+
+MIT License - see LICENSE file for details.
+
+## Disclaimer
+
+This software is for educational and informational purposes only. Not financial advice. Always conduct your own research and consult with financial advisors before making investment decisions.
