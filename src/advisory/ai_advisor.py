@@ -2,8 +2,10 @@ from typing import Dict, Any, List, Optional
 import requests
 import json
 import logging
+import time
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential
+from utils.api_logger import APILogger
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,7 @@ class AIAdvisor:
     def __init__(self, api_key: str, api_url: str):
         self.api_key = api_key
         self.api_url = api_url
+        self.api_logger = APILogger()
         
     def generate_advisory(self, stock_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate AI advisory for a single stock"""
@@ -160,18 +163,40 @@ class AIAdvisor:
         
         url = f"{self.api_url}?key={self.api_key}"
         
+        # Log the AI API request
+        start_time = time.time()
+        request_id = self.api_logger.log_ai_request(
+            api_name="Gemini_Advisory",
+            method="POST",
+            url=url,
+            prompt=prompt,
+            model_config=data.get("generationConfig", {})
+        )
+        
         response = requests.post(
             url, 
             headers=headers, 
             json=data,
             timeout=30
         )
+        duration_ms = (time.time() - start_time) * 1000
         response.raise_for_status()
         
         result = response.json()
         
         if "candidates" in result and len(result["candidates"]) > 0:
             content = result["candidates"][0]["content"]["parts"][0]["text"]
+            
+            # Log successful AI response
+            self.api_logger.log_ai_response(
+                request_id=request_id,
+                api_name="Gemini_Advisory",
+                status_code=response.status_code,
+                ai_response=content,
+                response_headers=dict(response.headers),
+                duration_ms=duration_ms,
+                usage_stats=result.get('usageMetadata', {})
+            )
             
             # Try to parse as JSON
             try:
@@ -184,6 +209,14 @@ class AIAdvisor:
                     return json.loads(json_match.group())
                 raise ValueError("Could not parse Gemini response as JSON")
         else:
+            # Log error response
+            self.api_logger.log_ai_response(
+                request_id=request_id,
+                api_name="Gemini_Advisory",
+                status_code=response.status_code,
+                duration_ms=duration_ms,
+                error="No valid candidates in Gemini response"
+            )
             raise ValueError("No valid response from Gemini API")
 
     def _process_response(self, response: Dict[str, Any]) -> Dict[str, Any]:

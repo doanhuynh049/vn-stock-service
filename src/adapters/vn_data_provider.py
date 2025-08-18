@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import json
 from adapters.base import DataProviderInterface, DataProviderError, RateLimitError, DataNotFoundError
+from utils.api_logger import APILogger
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,9 @@ class VietCapitalProvider(DataProviderInterface):
             "Accept": "application/json"
         })
         
+        # Initialize API logger
+        self.api_logger = APILogger()
+        
         if api_key:
             self.session.headers.update({"Authorization": f"Bearer {api_key}"})
     
@@ -34,15 +38,51 @@ class VietCapitalProvider(DataProviderInterface):
             url = f"{self.base_url}/securities/{ticker}/quote"
             params = {"exchange": exchange}
             
+            # Log the API request
+            start_time = time.time()
+            request_id = self.api_logger.log_request(
+                api_name="VietCapital_Quote",
+                method="GET",
+                url=url,
+                params=params
+            )
+            
             response = self.session.get(url, params=params, timeout=10)
+            duration_ms = (time.time() - start_time) * 1000
             
             if response.status_code == 429:
+                # Log rate limit error
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="VietCapital_Quote",
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error="Rate limit exceeded"
+                )
                 raise RateLimitError("Rate limit exceeded")
             elif response.status_code == 404:
+                # Log not found error
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="VietCapital_Quote",
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error=f"Ticker {ticker} not found"
+                )
                 raise DataNotFoundError(f"Ticker {ticker} not found")
             
             response.raise_for_status()
             data = response.json()
+            
+            # Log successful response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="VietCapital_Quote",
+                status_code=response.status_code,
+                response_data={"ticker": ticker, "has_data": bool(data), "price": data.get("last_price", 0)},
+                response_headers=dict(response.headers),
+                duration_ms=duration_ms
+            )
             
             return {
                 "ticker": ticker,

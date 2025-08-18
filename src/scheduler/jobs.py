@@ -293,6 +293,13 @@ class StockAdvisoryScheduler:
     def send_advisory_emails(self, stock_advisories: List[Dict[str, Any]], 
                             portfolio_advisory: Dict[str, Any], holdings: Holdings):
         """Send all advisory emails"""
+        logger.info("Sending advisory emails")
+        if not stock_advisories:
+            logger.warning("No stock advisories to send")
+            return
+        if not portfolio_advisory:
+            logger.warning("No portfolio advisory to send")
+            return
         try:
             # Send consolidated all-stocks advisory email
             success = self.email_sender.send_all_stocks_advisory_email(

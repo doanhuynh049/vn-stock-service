@@ -5,10 +5,12 @@ from email.mime.base import MIMEBase
 from email import encoders
 import os
 import logging
+import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import jinja2
 from pathlib import Path
+from utils.api_logger import APILogger
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,9 @@ class EmailSender:
         self.smtp_pass = smtp_pass
         self.mail_from = mail_from or smtp_user
         self.smtp_tls = smtp_tls
+        
+        # Initialize API logger
+        self.api_logger = APILogger()
         
         # Setup Jinja2 template environment
         template_dir = Path(__file__).parent / "templates"
@@ -93,6 +98,7 @@ class EmailSender:
                                      portfolio_data: Dict[str, Any], 
                                      portfolio_metrics: Dict[str, Any],
                                      recipient: str) -> bool:
+        logger.info(f"Sending consolidated all-stocks advisory email to {recipient} with {len(stock_advisories)} advisories")
         """Send consolidated email with all stock advisories"""
         try:
             template = self.jinja_env.get_template("all_stocks_advisory.html")
@@ -136,6 +142,21 @@ class EmailSender:
                 for attachment in attachments:
                     self._add_attachment(msg, attachment)
             
+            # Log the SMTP request
+            start_time = time.time()
+            request_id = self.api_logger.log_request(
+                api_name="SMTP_Email",
+                method="SEND",
+                url=f"smtp://{self.smtp_host}:{self.smtp_port}",
+                params={
+                    "recipient": recipient,
+                    "subject": subject,
+                    "content_size": len(html_content),
+                    "attachments_count": len(attachments) if attachments else 0,
+                    "tls_enabled": self.smtp_tls
+                }
+            )
+            
             # Send email
             with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 if self.smtp_tls:
@@ -146,10 +167,37 @@ class EmailSender:
                 
                 server.send_message(msg)
             
+            duration_ms = (time.time() - start_time) * 1000
+            
+            # Log successful email response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="SMTP_Email",
+                status_code=250,  # SMTP success code
+                response_data={
+                    "message": "Email sent successfully",
+                    "recipient": recipient,
+                    "subject": subject
+                },
+                duration_ms=duration_ms
+            )
+            
             logger.info(f"Email sent successfully to {recipient}: {subject}")
             return True
             
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000 if 'start_time' in locals() else 0
+            
+            # Log error response
+            if 'request_id' in locals():
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="SMTP_Email",
+                    status_code=0,
+                    duration_ms=duration_ms,
+                    error=str(e)
+                )
+            
             logger.error(f"Failed to send email to {recipient}: {e}")
             return False
 
@@ -259,6 +307,9 @@ class DryRunEmailSender(EmailSender):
                                      portfolio_data: Dict[str, Any], 
                                      portfolio_metrics: Dict[str, Any],
                                      recipient: str) -> bool:
+        logger.info(
+            "DRY RUN: Sending all-stocks advisory email (not actually sent, saved to file)"
+        )
         """Save consolidated all-stocks advisory email to file instead of sending"""
         try:
             template = self.jinja_env.get_template("all_stocks_advisory.html")

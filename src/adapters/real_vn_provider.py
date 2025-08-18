@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import re
 from adapters.base import DataProviderInterface, DataProviderError, RateLimitError, DataNotFoundError
+from utils.api_logger import APILogger
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,9 @@ class RealVNStockProvider(DataProviderInterface):
             "Accept-Language": "vi-VN,vi;q=0.9,en;q=0.8",
             "Referer": "https://iboard.ssi.com.vn/"
         })
+        
+        # Initialize API logger
+        self.api_logger = APILogger()
         
         # SSI API endpoints (free, no auth required)
         self.ssi_base = "https://iboard.ssi.com.vn/dchart/api"
@@ -52,14 +56,49 @@ class RealVNStockProvider(DataProviderInterface):
             "consumerID": settings.SSI_CONSUMER_ID,
             "consumerSecret": settings.SSI_CONSUMER_SECRET
         }
-        resp = self.session.post(url, json=payload, timeout=10)
-        resp.raise_for_status()
-        data = resp.json()
-        token = data['data']['accessToken']
-        # Token is valid for 1 hour, set expiry 5 min early
-        self._ssi_token = token
-        self._ssi_token_expiry = time.time() + 55 * 60
-        return token
+        
+        # Log the API request
+        start_time = time.time()
+        request_id = self.api_logger.log_request(
+            api_name="SSI_FastConnect",
+            method="POST",
+            url=url,
+            payload=payload
+        )
+        
+        try:
+            resp = self.session.post(url, json=payload, timeout=10)
+            duration_ms = (time.time() - start_time) * 1000
+            resp.raise_for_status()
+            data = resp.json()
+            
+            # Log successful response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="SSI_FastConnect",
+                status_code=resp.status_code,
+                response_data={"message": "Token acquired successfully", "has_token": "accessToken" in data.get("data", {})},
+                response_headers=dict(resp.headers),
+                duration_ms=duration_ms
+            )
+            
+            token = data['data']['accessToken']
+            # Token is valid for 1 hour, set expiry 5 min early
+            self._ssi_token = token
+            self._ssi_token_expiry = time.time() + 55 * 60
+            return token
+            
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            # Log error response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="SSI_FastConnect",
+                status_code=resp.status_code if 'resp' in locals() else 0,
+                duration_ms=duration_ms,
+                error=str(e)
+            )
+            raise
 
     def get_quote(self, ticker: str, exchange: str = "HOSE") -> Dict[str, Any]:
         """Get current quote using SSI FastConnect API, fallback to CafeF if needed"""
@@ -77,9 +116,32 @@ class RealVNStockProvider(DataProviderInterface):
                 "pageSize": 1
             }
             headers = {"Authorization": f"Bearer {token}"}
+            
+            # Log the API request
+            start_time = time.time()
+            request_id = self.api_logger.log_request(
+                api_name="SSI_DailyStockPrice",
+                method="POST",
+                url=url,
+                headers=headers,
+                payload=payload
+            )
+            
             resp = self.session.post(url, json=payload, headers=headers, timeout=10)
+            duration_ms = (time.time() - start_time) * 1000
             resp.raise_for_status()
             data = resp.json()
+            
+            # Log successful response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="SSI_DailyStockPrice",
+                status_code=resp.status_code,
+                response_data={"ticker": ticker, "has_data": bool(data.get('data')), "records_count": len(data.get('data', []))},
+                response_headers=dict(resp.headers),
+                duration_ms=duration_ms
+            )
+            
             if not data.get('data'):
                 raise DataNotFoundError(f"No price data for {ticker}")
             d = data['data'][0]
@@ -109,24 +171,69 @@ class RealVNStockProvider(DataProviderInterface):
         try:
             # Correct CafeF historical price page URL
             url = f"https://s.cafef.vn/Lich-su-gia-{ticker.upper()}-{exchange.upper()}.chn"
+            
+            # Log the CafeF request
+            start_time = time.time()
+            request_id = self.api_logger.log_request(
+                api_name="CafeF_Scraping",
+                method="GET",
+                url=url
+            )
+            
             response = self.session.get(url, timeout=10)
+            duration_ms = (time.time() - start_time) * 1000
             response.raise_for_status()
 
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(response.content, 'html.parser')
             table = soup.find('table', {'id': 'tableContent'})
             if not table:
+                # Log failed response
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="CafeF_Scraping",
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error=f"Could not find price table for {ticker}"
+                )
                 raise DataNotFoundError(f"Could not find price table for {ticker}")
             first_row = table.find('tr', {'class': 'r'})
             if not first_row:
+                # Log failed response
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="CafeF_Scraping",
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error=f"Could not find price row for {ticker}"
+                )
                 raise DataNotFoundError(f"Could not find price row for {ticker}")
             cells = first_row.find_all('td')
             if len(cells) < 6:
+                # Log failed response
+                self.api_logger.log_response(
+                    request_id=request_id,
+                    api_name="CafeF_Scraping",
+                    status_code=response.status_code,
+                    duration_ms=duration_ms,
+                    error=f"Not enough data in price row for {ticker}"
+                )
                 raise DataNotFoundError(f"Not enough data in price row for {ticker}")
+            
             price = float(cells[5].text.replace(',', '').replace('.', ''))
             volume = int(cells[7].text.replace(',', '').replace('.', '')) if len(cells) > 7 else 0
             change = 0
             change_pct = 0
+            
+            # Log successful CafeF response
+            self.api_logger.log_response(
+                request_id=request_id,
+                api_name="CafeF_Scraping",
+                status_code=response.status_code,
+                response_data={"ticker": ticker, "price": price, "volume": volume, "scraped_cells": len(cells)},
+                duration_ms=duration_ms
+            )
+            
             return {
                 "ticker": ticker,
                 "exchange": exchange,
@@ -183,7 +290,18 @@ Please provide realistic price data based on recent market conditions."""
             # Add API key to URL for Gemini
             url = f"{settings.LLM_PROVIDER}?key={settings.LLM_API_KEY}"
             
+            # Log the AI API request
+            start_time = time.time()
+            request_id = self.api_logger.log_ai_request(
+                api_name="Gemini_AI_Fallback",
+                method="POST",
+                url=url,
+                prompt=prompt,
+                model_config={"ticker": ticker, "exchange": exchange, "type": "price_fallback"}
+            )
+            
             response = requests.post(url, json=payload, headers=headers, timeout=15)
+            duration_ms = (time.time() - start_time) * 1000
             response.raise_for_status()
             
             data = response.json()
@@ -191,6 +309,17 @@ Please provide realistic price data based on recent market conditions."""
             # Extract response text
             if 'candidates' in data and data['candidates']:
                 ai_response = data['candidates'][0]['content']['parts'][0]['text']
+                
+                # Log successful AI response
+                self.api_logger.log_ai_response(
+                    request_id=request_id,
+                    api_name="Gemini_AI_Fallback",
+                    status_code=response.status_code,
+                    ai_response=ai_response,
+                    response_headers=dict(response.headers),
+                    duration_ms=duration_ms,
+                    usage_stats=data.get('usageMetadata', {})
+                )
                 
                 # Try to parse JSON from AI response
                 import re
