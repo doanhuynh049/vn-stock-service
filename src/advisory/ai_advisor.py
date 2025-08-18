@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Optional
 import requests
 import json
 import logging
+from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
@@ -64,14 +65,70 @@ class AIAdvisor:
     
     def _create_portfolio_prompt(self, portfolio_data: Dict[str, Any]) -> str:
         system_prompt = (
-            "You are a Vietnam portfolio manager. Analyze the overall portfolio and provide summary insights. "
-            "Focus on total P/L, concentration risks, sector balance, and priority actions. "
-            "Return valid JSON with: "
-            '{"total_pl_pct": number, "risk_alerts": ["alert1"], "top_movers": ["ticker1"], '
-            '"concentration_risks": ["risk1"], "priority_todos": ["todo1", "todo2", "todo3"]}'
+            "You are an experienced Vietnam portfolio manager with deep knowledge of Vietnamese stocks and market dynamics. "
+            "Analyze this portfolio comprehensively and provide professional insights.\n\n"
+            
+            "ANALYSIS FOCUS:\n"
+            "1. Risk Assessment: Concentration, sector exposure, correlation risks\n"
+            "2. Performance Analysis: P/L trends, underperformers, top movers\n"
+            "3. Strategic Recommendations: Rebalancing, sector allocation, timing\n"
+            "4. Market Context: Vietnam market conditions, sector rotation, upcoming events\n"
+            "5. Action Items: Immediate, short-term, and long-term priorities\n\n"
+            
+            "Return your analysis in valid JSON format with this structure:\n"
+            '{\n'
+            '  "overall_assessment": "Brief 2-3 sentence summary of portfolio health",\n'
+            '  "performance_insights": {\n'
+            '    "total_pl_analysis": "Analysis of overall P/L performance",\n'
+            '    "best_performers": ["ticker1: reason", "ticker2: reason"],\n'
+            '    "underperformers": ["ticker1: reason", "ticker2: reason"],\n'
+            '    "momentum_stocks": ["ticker1", "ticker2"]\n'
+            '  },\n'
+            '  "risk_analysis": {\n'
+            '    "concentration_risks": ["specific risk descriptions"],\n'
+            '    "sector_risks": ["sector exposure concerns"],\n'
+            '    "correlation_risks": ["stocks that move together"],\n'
+            '    "risk_score": "number 1-10 where 10 is highest risk"\n'
+            '  },\n'
+            '  "strategic_recommendations": {\n'
+            '    "immediate_actions": ["urgent actions for today/this week"],\n'
+            '    "rebalancing_advice": ["specific position adjustments"],\n'
+            '    "sector_allocation": ["sector-specific recommendations"],\n'
+            '    "market_timing": ["timing considerations for Vietnam market"]\n'
+            '  },\n'
+            '  "market_context": {\n'
+            '    "vietnam_market_outlook": "Current VN market conditions assessment",\n'
+            '    "sector_trends": ["which sectors are favored/avoided and why"],\n'
+            '    "macro_factors": ["key economic factors affecting portfolio"]\n'
+            '  },\n'
+            '  "priority_todos": [\n'
+            '    "High Priority: specific actionable item",\n'
+            '    "Medium Priority: specific actionable item",\n'
+            '    "Low Priority: specific actionable item"\n'
+            '  ]\n'
+            '}'
         )
         
-        user_prompt = f"Analyze this portfolio: {json.dumps(portfolio_data, indent=2)}"
+        # Enhanced portfolio data context
+        portfolio_context = {
+            "portfolio_summary": portfolio_data,
+            "analysis_date": datetime.now().strftime("%Y-%m-%d"),
+            "market_session": "Vietnam trading hours",
+            "currency": "VND"
+        }
+        
+        user_prompt = (
+            f"Please analyze this Vietnamese stock portfolio and provide comprehensive insights:\n\n"
+            f"{json.dumps(portfolio_context, indent=2)}\n\n"
+            f"Consider the following in your analysis:\n"
+            f"- Vietnamese market dynamics and typical sector rotations\n"
+            f"- Banking sector concentration (VCB, TCB, ACB, BID)\n"
+            f"- Technology exposure (FPT)\n"
+            f"- Consumer and industrial diversification\n"
+            f"- Position sizing and risk management\n"
+            f"- Current Vietnam economic environment"
+        )
+        
         return f"{system_prompt}\n\n{user_prompt}"
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
@@ -141,14 +198,55 @@ class AIAdvisor:
         }
     
     def _process_portfolio_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
-        """Process portfolio AI response"""
-        return {
+        """Process enhanced portfolio AI response"""
+        # Extract the enhanced portfolio analysis
+        overall_assessment = response.get("overall_assessment", "Portfolio analysis completed.")
+        performance_insights = response.get("performance_insights", {})
+        risk_analysis = response.get("risk_analysis", {})
+        strategic_recommendations = response.get("strategic_recommendations", {})
+        market_context = response.get("market_context", {})
+        priority_todos = response.get("priority_todos", [])
+        
+        # Backwards compatibility for basic fields
+        basic_response = {
             "total_pl_pct": response.get("total_pl_pct", 0),
-            "risk_alerts": response.get("risk_alerts", []),
-            "top_movers": response.get("top_movers", []),
-            "concentration_risks": response.get("concentration_risks", []),
-            "priority_todos": response.get("priority_todos", [])
+            "risk_alerts": risk_analysis.get("concentration_risks", []) + risk_analysis.get("sector_risks", []),
+            "top_movers": performance_insights.get("momentum_stocks", []),
+            "concentration_risks": risk_analysis.get("concentration_risks", []),
+            "priority_todos": priority_todos
         }
+        
+        # Enhanced fields for improved display
+        enhanced_response = {
+            "overall_assessment": overall_assessment,
+            "performance_insights": {
+                "total_pl_analysis": performance_insights.get("total_pl_analysis", ""),
+                "best_performers": performance_insights.get("best_performers", []),
+                "underperformers": performance_insights.get("underperformers", []),
+                "momentum_stocks": performance_insights.get("momentum_stocks", [])
+            },
+            "risk_analysis": {
+                "concentration_risks": risk_analysis.get("concentration_risks", []),
+                "sector_risks": risk_analysis.get("sector_risks", []),
+                "correlation_risks": risk_analysis.get("correlation_risks", []),
+                "risk_score": risk_analysis.get("risk_score", 5)
+            },
+            "strategic_recommendations": {
+                "immediate_actions": strategic_recommendations.get("immediate_actions", []),
+                "rebalancing_advice": strategic_recommendations.get("rebalancing_advice", []),
+                "sector_allocation": strategic_recommendations.get("sector_allocation", []),
+                "market_timing": strategic_recommendations.get("market_timing", [])
+            },
+            "market_context": {
+                "vietnam_market_outlook": market_context.get("vietnam_market_outlook", ""),
+                "sector_trends": market_context.get("sector_trends", []),
+                "macro_factors": market_context.get("macro_factors", [])
+            },
+            "priority_todos": priority_todos
+        }
+        
+        # Merge basic and enhanced for compatibility
+        return {**basic_response, **enhanced_response}
     
     def _fallback_advisory(self, stock_data: Dict[str, Any]) -> Dict[str, Any]:
         """Fallback advisory when AI fails"""

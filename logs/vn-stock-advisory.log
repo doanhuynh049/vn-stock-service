@@ -147,3 +147,149 @@
 {"timestamp": "2025-08-16 12:55:14,470", "level": "INFO", "logger": "email_service.sender", "message": "Email sent successfully to quocthien049@gmail.com: 📊 Portfolio Overview - August 16, 2025"}
 {"timestamp": "2025-08-16 12:55:14,471", "level": "INFO", "logger": "scheduler.jobs", "message": "Sent portfolio overview email"}
 {"timestamp": "2025-08-16 12:55:14,471", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Daily advisory completed in 96.97 seconds ==="}
+{"timestamp": "2025-08-18 09:19:13,681", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Starting Daily Stock Advisory Analysis ==="}
+{"timestamp": "2025-08-18 09:19:13,681", "level": "INFO", "logger": "scheduler.jobs", "message": "Loaded 11 positions"}
+{"timestamp": "2025-08-18 09:19:15,475", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for FPT, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:28,679", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for FPT: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-fpt-hose.chn"}
+{"timestamp": "2025-08-18 09:19:28,679", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for FPT: All data sources failed for FPT"}
+{"timestamp": "2025-08-18 09:19:29,260", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for VCB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:38,299", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for VCB: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-vcb-hose.chn"}
+{"timestamp": "2025-08-18 09:19:38,299", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for VCB: All data sources failed for VCB"}
+{"timestamp": "2025-08-18 09:19:39,155", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for TCB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:49,953", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for TCB: HTTPSConnectionPool(host='cafef.vn', port=443): Read timed out. (read timeout=10)"}
+{"timestamp": "2025-08-18 09:19:49,953", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for TCB: All data sources failed for TCB"}
+{"timestamp": "2025-08-18 09:19:50,516", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for ACB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:53,322", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for ACB: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-acb-hose.chn"}
+{"timestamp": "2025-08-18 09:19:53,322", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for ACB: All data sources failed for ACB"}
+{"timestamp": "2025-08-18 09:19:53,772", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for BID, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:55,533", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for BID: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-bid-hose.chn"}
+{"timestamp": "2025-08-18 09:19:55,533", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for BID: All data sources failed for BID"}
+{"timestamp": "2025-08-18 09:19:56,086", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for HPG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:19:57,999", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for HPG: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-hpg-hose.chn"}
+{"timestamp": "2025-08-18 09:19:57,999", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for HPG: All data sources failed for HPG"}
+{"timestamp": "2025-08-18 09:19:58,439", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for MSN, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:20:00,233", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for MSN: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-msn-hose.chn"}
+{"timestamp": "2025-08-18 09:20:00,233", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for MSN: All data sources failed for MSN"}
+{"timestamp": "2025-08-18 09:20:00,683", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for VNM, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:20:02,531", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for VNM: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-vnm-hose.chn"}
+{"timestamp": "2025-08-18 09:20:02,531", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for VNM: All data sources failed for VNM"}
+{"timestamp": "2025-08-18 09:20:03,075", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for KDH, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:20:04,850", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for KDH: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-kdh-hose.chn"}
+{"timestamp": "2025-08-18 09:20:04,851", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for KDH: All data sources failed for KDH"}
+{"timestamp": "2025-08-18 09:20:05,297", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for HDG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:20:07,125", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for HDG: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-hdg-hose.chn"}
+{"timestamp": "2025-08-18 09:20:07,125", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for HDG: All data sources failed for HDG"}
+{"timestamp": "2025-08-18 09:20:07,573", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for CMG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:20:09,341", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for CMG: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-cmg-hose.chn"}
+{"timestamp": "2025-08-18 09:20:09,341", "level": "ERROR", "logger": "scheduler.jobs", "message": "Failed to fetch market data for CMG: All data sources failed for CMG"}
+{"timestamp": "2025-08-18 09:20:09,341", "level": "INFO", "logger": "scheduler.jobs", "message": "Fetched market data for 11 positions"}
+{"timestamp": "2025-08-18 09:20:39,883", "level": "INFO", "logger": "scheduler.jobs", "message": "Generated 11 stock advisories"}
+{"timestamp": "2025-08-18 09:20:42,217", "level": "INFO", "logger": "scheduler.jobs", "message": "Generated portfolio advisory"}
+{"timestamp": "2025-08-18 09:20:47,470", "level": "INFO", "logger": "email_service.sender", "message": "Email sent successfully to quocthien049@gmail.com: 📈 Daily Stock Advisory - 11 Positions - August 18, 2025"}
+{"timestamp": "2025-08-18 09:20:47,471", "level": "INFO", "logger": "scheduler.jobs", "message": "Sent consolidated stock advisory email for 11 positions"}
+{"timestamp": "2025-08-18 09:20:52,288", "level": "INFO", "logger": "email_service.sender", "message": "Email sent successfully to quocthien049@gmail.com: 📊 Portfolio Overview - August 18, 2025"}
+{"timestamp": "2025-08-18 09:20:52,288", "level": "INFO", "logger": "scheduler.jobs", "message": "Sent portfolio overview email"}
+{"timestamp": "2025-08-18 09:20:52,288", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Daily advisory completed in 98.61 seconds ==="}
+{"timestamp": "2025-08-18 09:29:31,475", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Starting Daily Stock Advisory Analysis ==="}
+{"timestamp": "2025-08-18 09:29:31,476", "level": "INFO", "logger": "scheduler.jobs", "message": "Loaded 11 positions"}
+{"timestamp": "2025-08-18 09:30:08,608", "level": "INFO", "logger": "src.adapters.real_vn_provider", "message": "AI price estimate for FPT: 142500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:30:08,608", "level": "WARNING", "logger": "src.adapters.real_vn_provider", "message": "Using basic price estimate for FPT: 125000 VND"}
+{"timestamp": "2025-08-18 09:35:55,719", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Starting Daily Stock Advisory Analysis ==="}
+{"timestamp": "2025-08-18 09:35:55,719", "level": "INFO", "logger": "scheduler.jobs", "message": "Loaded 11 positions"}
+{"timestamp": "2025-08-18 09:35:57,623", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for FPT, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:36:04,795", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for FPT: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-fpt-hose.chn"}
+{"timestamp": "2025-08-18 09:36:04,795", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for FPT"}
+{"timestamp": "2025-08-18 09:36:06,846", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for FPT: 145000.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:36:09,294", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for FPT: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:09,717", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for FPT: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:10,717", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for FPT: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:11,717", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for FPT, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:22,946", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for VCB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:36:25,812", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for VCB: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-vcb-hose.chn"}
+{"timestamp": "2025-08-18 09:36:25,813", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for VCB"}
+{"timestamp": "2025-08-18 09:36:27,633", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for VCB: 92500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:36:28,229", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for VCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:29,062", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for VCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:30,088", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for VCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:31,215", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for VCB, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:33,648", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for TCB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:36:35,456", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for TCB: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-tcb-hose.chn"}
+{"timestamp": "2025-08-18 09:36:35,456", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for TCB"}
+{"timestamp": "2025-08-18 09:36:37,537", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for TCB: 43200.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:36:38,121", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for TCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:38,983", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for TCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:39,966", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for TCB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:40,984", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for TCB, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:43,504", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for ACB, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:36:45,430", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for ACB: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-acb-hose.chn"}
+{"timestamp": "2025-08-18 09:36:45,430", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for ACB"}
+{"timestamp": "2025-08-18 09:36:47,244", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for ACB: 27200.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:36:47,823", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for ACB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:49,279", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for ACB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:49,708", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for ACB: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:50,872", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for ACB, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:36:53,890", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for BID, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:37:04,697", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for BID: HTTPSConnectionPool(host='cafef.vn', port=443): Read timed out. (read timeout=10)"}
+{"timestamp": "2025-08-18 09:37:04,697", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for BID"}
+{"timestamp": "2025-08-18 09:37:06,592", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for BID: 45500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:37:07,210", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for BID: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:08,199", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for BID: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:09,200", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for BID: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:10,190", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for BID, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:18,229", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for HPG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:37:29,051", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for HPG: HTTPSConnectionPool(host='cafef.vn', port=443): Read timed out. (read timeout=10)"}
+{"timestamp": "2025-08-18 09:37:29,052", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for HPG"}
+{"timestamp": "2025-08-18 09:37:31,238", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for HPG: 30500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:37:32,011", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for HPG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:33,292", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for HPG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:33,741", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for HPG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:34,727", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for HPG, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:38,183", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for MSN, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:37:40,202", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for MSN: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-msn-hose.chn"}
+{"timestamp": "2025-08-18 09:37:40,202", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for MSN"}
+{"timestamp": "2025-08-18 09:37:42,353", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for MSN: 78500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:37:42,996", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for MSN: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:43,970", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for MSN: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:44,811", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for MSN: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:45,794", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for MSN, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:48,547", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for VNM, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:37:50,395", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for VNM: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-vnm-hose.chn"}
+{"timestamp": "2025-08-18 09:37:50,395", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for VNM"}
+{"timestamp": "2025-08-18 09:37:52,348", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for VNM: 70500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:37:52,933", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for VNM: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:53,787", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for VNM: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:54,945", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for VNM: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:55,933", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for VNM, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:37:58,788", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for KDH, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:38:09,611", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for KDH: HTTPSConnectionPool(host='cafef.vn', port=443): Read timed out. (read timeout=10)"}
+{"timestamp": "2025-08-18 09:38:09,611", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for KDH"}
+{"timestamp": "2025-08-18 09:38:11,535", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for KDH: 38500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:38:12,110", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for KDH: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:12,973", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for KDH: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:13,996", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for KDH: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:14,958", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for KDH, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:21,296", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for HDG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:38:32,112", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for HDG: HTTPSConnectionPool(host='cafef.vn', port=443): Read timed out. (read timeout=10)"}
+{"timestamp": "2025-08-18 09:38:32,112", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for HDG"}
+{"timestamp": "2025-08-18 09:38:34,130", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for HDG: 30500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:38:34,715", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for HDG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:35,567", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for HDG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:36,557", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for HDG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:37,567", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for HDG, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:41,005", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "SSI FastConnect API failed for CMG, trying CafeF fallback: 400 Client Error: Bad Request for url: https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"}
+{"timestamp": "2025-08-18 09:38:42,814", "level": "ERROR", "logger": "adapters.real_vn_provider", "message": "CafeF fallback failed for CMG: 404 Client Error: Not Found for url: https://cafef.vn/du-lieu/lich-su-gia-cmg-hose.chn"}
+{"timestamp": "2025-08-18 09:38:42,814", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "Trying AI fallback for CMG"}
+{"timestamp": "2025-08-18 09:38:44,697", "level": "INFO", "logger": "adapters.real_vn_provider", "message": "AI price estimate for CMG: 42500.0 VND (confidence: 0.75)"}
+{"timestamp": "2025-08-18 09:38:45,301", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 5D OHLCV for CMG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:46,125", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 1M OHLCV for CMG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:47,246", "level": "WARNING", "logger": "scheduler.jobs", "message": "Failed to fetch 3M OHLCV for CMG: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:48,114", "level": "WARNING", "logger": "adapters.real_vn_provider", "message": "Error parsing fundamentals for CMG, using defaults: Expecting value: line 1 column 1 (char 0)"}
+{"timestamp": "2025-08-18 09:38:49,909", "level": "INFO", "logger": "scheduler.jobs", "message": "Fetched market data for 11 positions"}
+{"timestamp": "2025-08-18 09:39:19,760", "level": "INFO", "logger": "scheduler.jobs", "message": "Generated 11 stock advisories"}
+{"timestamp": "2025-08-18 09:39:40,105", "level": "ERROR", "logger": "advisory.ai_advisor", "message": "Error generating portfolio advisory: RetryError[<Future at 0x7fb59d27ee80 state=finished raised JSONDecodeError>]"}
+{"timestamp": "2025-08-18 09:39:40,105", "level": "INFO", "logger": "scheduler.jobs", "message": "Generated portfolio advisory"}
+{"timestamp": "2025-08-18 09:39:45,210", "level": "INFO", "logger": "email_service.sender", "message": "Email sent successfully to quocthien049@gmail.com: 📈 Daily Stock Advisory - 11 Positions - August 18, 2025"}
+{"timestamp": "2025-08-18 09:39:45,211", "level": "INFO", "logger": "scheduler.jobs", "message": "Sent consolidated stock advisory email for 11 positions"}
+{"timestamp": "2025-08-18 09:39:49,543", "level": "INFO", "logger": "email_service.sender", "message": "Email sent successfully to quocthien049@gmail.com: 📊 Portfolio Overview - August 18, 2025"}
+{"timestamp": "2025-08-18 09:39:49,543", "level": "INFO", "logger": "scheduler.jobs", "message": "Sent portfolio overview email"}
+{"timestamp": "2025-08-18 09:39:49,543", "level": "INFO", "logger": "scheduler.jobs", "message": "=== Daily advisory completed in 233.82 seconds ==="}

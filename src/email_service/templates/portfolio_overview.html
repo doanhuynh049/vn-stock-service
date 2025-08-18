@@ -176,12 +176,105 @@
             text-align: center;
         }
         
+        /* AI Insights Section Styles */
+        .ai-insights-section {
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border-left: 5px solid #007bff;
+        }
+        
+        .insight-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        
+        .insight-card h4 {
+            margin-top: 0;
+            color: #007bff;
+            font-size: 1.1em;
+        }
+        
+        .assessment-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #2c3e50;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #007bff;
+        }
+        
+        .risk-card {
+            border-left-color: #dc3545;
+        }
+        .risk-card h4 {
+            color: #dc3545;
+        }
+        
+        .strategy-card {
+            border-left-color: #28a745;
+        }
+        .strategy-card h4 {
+            color: #28a745;
+        }
+        
+        .market-card {
+            border-left-color: #ffc107;
+        }
+        .market-card h4 {
+            color: #e68900;
+        }
+        
+        .insight-list, .risk-list, .action-list, .market-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+        
+        .insight-list li, .risk-list li, .action-list li, .market-list li {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+        }
+        
+        .risk-list li {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+        }
+        
+        .action-list li {
+            background: #f0fff4;
+            border-left-color: #28a745;
+        }
+        
+        .action-list.immediate li {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            font-weight: bold;
+        }
+        
+        .market-list li {
+            background: #fff9e6;
+            border-left-color: #ffc107;
+        }
+        
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { padding: 20px; }
             .summary-grid { grid-template-columns: 1fr; }
             .movers-section { grid-template-columns: 1fr; }
             .positions-table { font-size: 0.9em; }
+            .ai-insights-section { padding: 15px; }
+            .insight-card { padding: 15px; }
         }
     </style>
 </head>
@@ -301,6 +394,129 @@
                 <li>{{ todo }}</li>
                 {% endfor %}
             </ul>
+        </div>
+        {% endif %}
+
+        {% if advisory.overall_assessment %}
+        <div class="ai-insights-section">
+            <h3>🤖 AI Portfolio Insights</h3>
+            
+            <div class="insight-card">
+                <h4>📊 Overall Assessment</h4>
+                <p class="assessment-text">{{ advisory.overall_assessment }}</p>
+            </div>
+
+            {% if advisory.performance_insights %}
+            <div class="insight-card">
+                <h4>📈 Performance Analysis</h4>
+                {% if advisory.performance_insights.total_pl_analysis %}
+                <p><strong>P/L Analysis:</strong> {{ advisory.performance_insights.total_pl_analysis }}</p>
+                {% endif %}
+                
+                {% if advisory.performance_insights.best_performers %}
+                <p><strong>🏆 Best Performers:</strong></p>
+                <ul class="insight-list">
+                    {% for performer in advisory.performance_insights.best_performers %}
+                    <li class="positive">{{ performer }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if advisory.performance_insights.underperformers %}
+                <p><strong>⚠️ Underperformers:</strong></p>
+                <ul class="insight-list">
+                    {% for underperformer in advisory.performance_insights.underperformers %}
+                    <li class="negative">{{ underperformer }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if advisory.risk_analysis %}
+            <div class="insight-card risk-card">
+                <h4>⚠️ Risk Analysis (Score: {{ advisory.risk_analysis.risk_score }}/10)</h4>
+                
+                {% if advisory.risk_analysis.concentration_risks %}
+                <p><strong>🎯 Concentration Risks:</strong></p>
+                <ul class="risk-list">
+                    {% for risk in advisory.risk_analysis.concentration_risks %}
+                    <li>{{ risk }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if advisory.risk_analysis.sector_risks %}
+                <p><strong>🏭 Sector Risks:</strong></p>
+                <ul class="risk-list">
+                    {% for risk in advisory.risk_analysis.sector_risks %}
+                    <li>{{ risk }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if advisory.strategic_recommendations %}
+            <div class="insight-card strategy-card">
+                <h4>🎯 Strategic Recommendations</h4>
+                
+                {% if advisory.strategic_recommendations.immediate_actions %}
+                <p><strong>🚨 Immediate Actions:</strong></p>
+                <ul class="action-list immediate">
+                    {% for action in advisory.strategic_recommendations.immediate_actions %}
+                    <li>{{ action }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if advisory.strategic_recommendations.rebalancing_advice %}
+                <p><strong>⚖️ Rebalancing Advice:</strong></p>
+                <ul class="action-list">
+                    {% for advice in advisory.strategic_recommendations.rebalancing_advice %}
+                    <li>{{ advice }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if advisory.strategic_recommendations.sector_allocation %}
+                <p><strong>🏗️ Sector Allocation:</strong></p>
+                <ul class="action-list">
+                    {% for allocation in advisory.strategic_recommendations.sector_allocation %}
+                    <li>{{ allocation }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if advisory.market_context %}
+            <div class="insight-card market-card">
+                <h4>🇻🇳 Vietnam Market Context</h4>
+                
+                {% if advisory.market_context.vietnam_market_outlook %}
+                <p><strong>Market Outlook:</strong> {{ advisory.market_context.vietnam_market_outlook }}</p>
+                {% endif %}
+                
+                {% if advisory.market_context.sector_trends %}
+                <p><strong>📊 Sector Trends:</strong></p>
+                <ul class="market-list">
+                    {% for trend in advisory.market_context.sector_trends %}
+                    <li>{{ trend }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                
+                {% if advisory.market_context.macro_factors %}
+                <p><strong>🌐 Macro Factors:</strong></p>
+                <ul class="market-list">
+                    {% for factor in advisory.market_context.macro_factors %}
+                    <li>{{ factor }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
         {% endif %}
 
