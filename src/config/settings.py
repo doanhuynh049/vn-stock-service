@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     SMTP_TLS: bool = True
     MAIL_TO: Optional[str] = None
     MAIL_FROM: Optional[str] = None
+    NOTIFICATION_EMAIL: Optional[str] = None
     
     # AI/LLM Settings
     LLM_PROVIDER: str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"

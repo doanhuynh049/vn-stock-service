@@ -18,6 +18,10 @@ from apscheduler.triggers.cron import CronTrigger
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
+from advisory.enhanced_engine import EnhancedAdvisoryEngine
+from advisory.enhanced_ai_advisor import AdvisoryMode
+from email_service.sender import EmailSender
+
 class GracefulKiller:
     def __init__(self):
         self.kill_now = False
@@ -110,6 +114,38 @@ class EnhancedScheduler:
         )
         
         self.logger.info("Weekly summary scheduled: Fridays 6:00 PM")
+        
+        # Add Entry & Exit Strategy analysis job (Mondays at 8 AM)
+        self.scheduler.add_job(
+            self.run_entry_exit_analysis,
+            CronTrigger(
+                minute=0,
+                hour=8,
+                day_of_week='mon',
+                timezone=timezone
+            ),
+            id='entry_exit_strategy',
+            name='Entry & Exit Strategy Analysis',
+            misfire_grace_time=600  # 10 minutes grace time
+        )
+        
+        self.logger.info("Entry & Exit Strategy analysis scheduled: Mondays 8:00 AM")
+        
+        # Add Dual Advisory job (send both emails sequentially) - Tuesdays at 8:30 AM
+        self.scheduler.add_job(
+            self.run_dual_advisory_sequential,
+            CronTrigger(
+                minute=30,
+                hour=8,
+                day_of_week='tue',
+                timezone=timezone
+            ),
+            id='dual_advisory_sequential',
+            name='Dual Advisory - Sequential Email Sending',
+            misfire_grace_time=600  # 10 minutes grace time
+        )
+        
+        self.logger.info("Dual Advisory (sequential emails) scheduled: Tuesdays 8:30 AM")
     
     async def run_daily_advisory(self):
         """Run daily advisory analysis and send notifications"""
@@ -200,6 +236,68 @@ class EnhancedScheduler:
             self.logger.error(f"Weekly summary job failed: {e}")
             return False
     
+    async def run_entry_exit_analysis(self):
+        """Run Entry & Exit Strategy analysis task"""
+        try:
+            self.logger.info("🎯 Starting scheduled Entry & Exit Strategy analysis...")
+            
+            # Initialize engine with Entry & Exit Strategy mode
+            engine = EnhancedAdvisoryEngine(
+                gemini_api_key=os.getenv('GEMINI_API_KEY'),
+                advisory_mode=AdvisoryMode.ENTRY_EXIT_STRATEGY,
+                email_sender=self.email_service
+            )
+            
+            # Generate and send analysis
+            result = engine.generate_daily_advisory(
+                save_to_history=True,
+                send_email=True,
+                email_recipient=os.getenv('NOTIFICATION_EMAIL')
+            )
+            
+            if result.get("success"):
+                self.logger.info("✅ Entry & Exit Strategy analysis completed successfully")
+            else:
+                self.logger.error("❌ Entry & Exit Strategy analysis failed")
+            
+            return result.get("success", False)
+            
+        except Exception as e:
+            self.logger.error(f"Entry & Exit Strategy analysis job failed: {e}")
+            return False
+    
+    async def run_dual_advisory_sequential(self):
+        """Run Dual Advisory - send both emails sequentially (tuần tự)"""
+        try:
+            self.logger.info("📧 Starting scheduled Dual Advisory (sequential email sending)...")
+            
+            # Initialize engine
+            engine = EnhancedAdvisoryEngine(
+                gemini_api_key=os.getenv('GEMINI_API_KEY'),
+                email_sender=self.email_service
+            )
+            
+            # Generate and send both advisories sequentially
+            result = engine.generate_dual_advisory_with_emails(
+                save_to_history=True,
+                email_recipient=os.getenv('NOTIFICATION_EMAIL')
+            )
+            
+            if result.get("success"):
+                emails_sent = result.get("emails_sent", {})
+                total_sent = sum(emails_sent.values())
+                self.logger.info(f"✅ Dual Advisory completed - {total_sent}/2 emails sent")
+                self.logger.info(f"   📊 Regular advisory: {'✓' if emails_sent.get('regular') else '✗'}")
+                self.logger.info(f"   🎯 Entry & Exit Strategy: {'✓' if emails_sent.get('entry_exit') else '✗'}")
+            else:
+                self.logger.error("❌ Dual Advisory failed")
+            
+            return result.get("success", False)
+            
+        except Exception as e:
+            self.logger.error(f"Dual Advisory sequential job failed: {e}")
+            return False
+
     def start(self):
         """Start the scheduler"""
         if self.scheduler:

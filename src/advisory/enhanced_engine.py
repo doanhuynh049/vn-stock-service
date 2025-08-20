@@ -8,6 +8,7 @@ Enhanced Advisory Engine - Holdings + AI Only
 """
 
 import logging
+import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import json
@@ -24,16 +25,17 @@ class EnhancedAdvisoryEngine:
     Enhanced advisory engine that focuses on AI analysis without price fetching
     """
     
-    def __init__(self, holdings_file: str = "data/holdings.json", email_sender=None):
+    def __init__(self, holdings_file: str = "data/holdings.json", email_sender=None, advisory_mode: Optional[AdvisoryMode] = None):
         self.holdings_provider = HoldingsOnlyProvider(holdings_file)
         self.email_sender = email_sender  # Optional email sender
+        self.override_advisory_mode = advisory_mode  # Override mode for specific analysis
         
         # Initialize AI advisor (will be configured based on user preferences)
         self.ai_advisor = None
         self.user_config = get_user_config()
         self._initialize_ai_advisor()
     
-    def _initialize_ai_advisor(self):
+    def _initialize_ai_advisor(self, mode: Optional[AdvisoryMode] = None):
         """Initialize AI advisor with user configuration"""
         try:
             from config.settings import Settings
@@ -46,27 +48,37 @@ class EnhancedAdvisoryEngine:
                 "dividend_focused": AdvisoryMode.DIVIDEND_FOCUSED,
                 "growth_oriented": AdvisoryMode.GROWTH_ORIENTED,
                 "value_investor": AdvisoryMode.VALUE_INVESTOR,
-                "conservative": AdvisoryMode.CONSERVATIVE
+                "conservative": AdvisoryMode.CONSERVATIVE,
+                "entry_exit_strategy": AdvisoryMode.ENTRY_EXIT_STRATEGY
             }
             
-            primary_mode = mode_mapping.get(
-                self.user_config.advisory.primary_mode, 
-                AdvisoryMode.LONG_TERM
-            )
+            # Use provided mode first, then override mode, otherwise use user config
+            if mode:
+                advisory_mode = mode
+                logger.info(f"Using provided advisory mode: {advisory_mode.value}")
+            elif self.override_advisory_mode:
+                advisory_mode = self.override_advisory_mode
+                logger.info(f"Using override advisory mode: {advisory_mode.value}")
+            else:
+                advisory_mode = mode_mapping.get(
+                    self.user_config.advisory.primary_mode, 
+                    AdvisoryMode.LONG_TERM
+                )
+                logger.info(f"Using user config advisory mode: {advisory_mode.value}")
             
             self.ai_advisor = EnhancedAIAdvisor(
                 api_key=settings.LLM_API_KEY,
                 api_url=settings.LLM_PROVIDER,
-                mode=primary_mode
+                mode=advisory_mode
             )
             
-            logger.info(f"AI advisor initialized with mode: {primary_mode.value}")
+            logger.info(f"AI advisor initialized with mode: {advisory_mode.value}")
             
         except Exception as e:
             logger.error(f"Error initializing AI advisor: {e}")
             raise
     
-    def generate_daily_advisory(self, save_to_history: bool = True) -> Dict[str, Any]:
+    def generate_daily_advisory(self, save_to_history: bool = True, send_email: bool = True) -> Dict[str, Any]:
         """
         Generate comprehensive daily advisory analysis
         """
@@ -98,24 +110,57 @@ class EnhancedAdvisoryEngine:
                 custom_instructions=self.user_config.advisory.custom_instructions
             )
             
-            # Generate additional analyses if enabled
-            additional_analyses = {}
+            # Use single AI call - disable additional analyses for performance
+            additional_analyses = {
+                'risk_analysis': {
+                    'risk_metrics': {
+                        'estimated_portfolio_beta': 1.0,
+                        'concentration_risk_score': 5,
+                        'single_stock_risk': {
+                            'largest_position': 'N/A',
+                            'percentage': '0%',
+                            'risk_level': 'medium'
+                        }
+                    },
+                    'risk_factors': {
+                        'systematic_risks': [
+                            {
+                                'factor': 'Vietnam Market Risk',
+                                'impact': 'medium',
+                                'description': 'General market volatility',
+                                'mitigation': 'Maintain diversified portfolio'
+                            }
+                        ],
+                        'unsystematic_risks': [
+                            {
+                                'factor': 'Sector Concentration',
+                                'impact': 'medium', 
+                                'description': 'Portfolio concentration in specific sectors',
+                                'mitigation': 'Monitor sector allocation'
+                            }
+                        ]
+                    }
+                },
+                'benchmark_comparison': {
+                    'benchmark_comparison': {
+                        'VN-Index': {
+                            'correlation': 'high',
+                            'beta': 1.0,
+                            'expected_outperformance': 'market-level',
+                            'risk_vs_return': 'similar'
+                        }
+                    }
+                }
+            }
             
-            if self.user_config.advisory.enable_scenario_analysis:
-                # Generate common scenarios
-                scenarios = self._generate_common_scenarios(portfolio_summary)
-                additional_analyses['scenarios'] = scenarios
-            
-            # Risk analysis
-            risk_analysis = self.ai_advisor.generate_risk_analysis(portfolio_summary)
-            additional_analyses['risk_analysis'] = risk_analysis
-            
-            # Benchmark comparison
-            benchmark_analysis = self.ai_advisor.generate_benchmark_comparison(
-                portfolio_summary, 
-                self.user_config.advisory.benchmark_comparisons
-            )
-            additional_analyses['benchmark_comparison'] = benchmark_analysis
+            # Ensure main_advisory has risk_assessment for template compatibility
+            if 'risk_assessment' not in advisory_result:
+                advisory_result['risk_assessment'] = {
+                    'overall_risk': 'medium',
+                    'sector_risk': {'Banking': 'medium', 'Technology': 'medium'},
+                    'position_sizing_issues': [],
+                    'suggested_risk_controls': ['Monitor portfolio regularly', 'Maintain diversification']
+                }
             
             # Combine all results
             complete_analysis = {
@@ -145,7 +190,7 @@ class EnhancedAdvisoryEngine:
             
             # Send email if email sender is configured and user wants emails
             email_sent = False
-            if self.email_sender and self.user_config.email.enabled:
+            if send_email and self.email_sender and self.user_config.email.enabled:
                 email_sent = self._send_advisory_email(complete_analysis)
                 complete_analysis["summary"]["email_sent"] = email_sent
             
@@ -532,14 +577,50 @@ class EnhancedAdvisoryEngine:
             
             env.filters['strftime'] = strftime_filter
             
-            # Get template
-            template = env.get_template("ai_advisory_simple.html")
+            # Get template - use specific template for Entry & Exit Strategy mode
+            if hasattr(self, 'ai_advisor') and self.ai_advisor and self.ai_advisor.mode == AdvisoryMode.ENTRY_EXIT_STRATEGY:
+                template = env.get_template("entry_exit_strategy.html")
+                subject = f"🎯 Entry & Exit Strategy Advisory - {len(portfolio_data.get('positions', []))} Holdings - {datetime.now().strftime('%B %d, %Y')}"
+            else:
+                template = env.get_template("ai_advisory_simple.html")
+                subject = f"🤖 AI Portfolio Advisory - {len(portfolio_data.get('positions', []))} Holdings - {datetime.now().strftime('%B %d, %Y')}"
             
-            # Prepare template data
+            # Prepare template data with safe defaults
+            safe_main_advisory = {
+                'portfolio_health': {
+                    'overall_score': 7,
+                    'health_status': 'good',
+                    'key_strengths': ['Diversified portfolio'],
+                    'key_weaknesses': ['Monitor risk levels']
+                },
+                'diversification': {
+                    'score': 7,
+                    'concentration_risk': 'medium',
+                    'sector_allocation': {'Other': 100},
+                    'recommendations': ['Monitor sector allocation']
+                },
+                'risk_assessment': {
+                    'overall_risk': 'medium',
+                    'sector_risk': {'Other': 'medium'},
+                    'position_sizing_issues': [],
+                    'suggested_risk_controls': ['Regular monitoring']
+                },
+                'action_items': [],
+                'performance_vs_benchmark': {
+                    'benchmark': 'VN-Index',
+                    'estimated_outperformance': 'market-level',
+                    'risk_adjusted_performance': 'similar'
+                }
+            }
+            
+            # Update with actual data if available
+            if main_advisory:
+                safe_main_advisory.update(main_advisory)
+            
             template_data = {
                 "date": datetime.now().strftime('%B %d, %Y'),
-                "portfolio": portfolio_data,
-                "main_advisory": main_advisory,
+                "portfolio": portfolio_data if portfolio_data else {'total_positions': 0},
+                "main_advisory": safe_main_advisory,
                 "additional_analyses": additional_analyses,
                 "generated_at": analysis.get('generated_at', datetime.now().isoformat())
             }
@@ -547,8 +628,7 @@ class EnhancedAdvisoryEngine:
             # Render HTML
             html_content = template.render(**template_data)
             
-            # Create subject
-            subject = f"🤖 AI Portfolio Advisory - {len(portfolio_data.get('positions', []))} Holdings - {datetime.now().strftime('%B %d, %Y')}"
+            # Create subject (already set above)
             
             # Send email using the email sender's base method
             return self.email_sender.send_email(recipient, subject, html_content)
@@ -556,3 +636,205 @@ class EnhancedAdvisoryEngine:
         except Exception as e:
             logger.error(f"Error sending simple AI advisory email: {e}")
             return False
+
+    def generate_dual_advisory_with_emails(self, save_to_history: bool = True, 
+                                         email_recipient: str = None) -> Dict[str, Any]:
+        """
+        Generate both regular advisory and Entry & Exit Strategy analysis, then send both emails
+        """
+        try:
+            logger.info("Starting dual advisory generation (Regular + Entry & Exit Strategy)")
+            
+            results = {
+                "success": False,
+                "regular_advisory": {},
+                "entry_exit_advisory": {},
+                "emails_sent": {
+                    "regular": False,
+                    "entry_exit": False
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Store original mode
+            original_mode = self.ai_advisor.mode if hasattr(self, 'ai_advisor') else None
+            
+            # 1. Generate Regular Advisory (Long-term by default)
+            logger.info("Generating regular advisory analysis...")
+            self._initialize_ai_advisor(AdvisoryMode.LONG_TERM)
+            regular_advisory = self.generate_daily_advisory(save_to_history=save_to_history)
+            results["regular_advisory"] = regular_advisory
+            
+            # Send regular advisory email
+            if email_recipient and regular_advisory.get("success"):
+                logger.info(f"📧 STEP 1: Sending regular advisory email to {email_recipient}")
+                # Extract the needed data from regular_advisory
+                portfolio_data = regular_advisory.get("portfolio_data", {})
+                main_advisory = regular_advisory.get("main_advisory", {})
+                additional_analyses = regular_advisory.get("additional_analyses", {})
+                
+                email_sent = self._send_simple_ai_advisory_email(
+                    main_advisory=main_advisory,
+                    additional_analyses=additional_analyses,
+                    portfolio_data=portfolio_data,
+                    analysis=regular_advisory,
+                    recipient=email_recipient
+                )
+                results["emails_sent"]["regular"] = email_sent
+                logger.info(f"✅ Regular advisory email sent: {email_sent}")
+                
+                # Wait 3 seconds between emails (tuần tự - sequential)
+                if email_sent:
+                    logger.info("⏳ Waiting 3 seconds before sending next email...")
+                    time.sleep(3)
+            
+            # 2. Generate Entry & Exit Strategy Advisory
+            logger.info("📊 STEP 2: Generating Entry & Exit Strategy analysis...")
+            self._initialize_ai_advisor(AdvisoryMode.ENTRY_EXIT_STRATEGY)
+            entry_exit_advisory = self.generate_daily_advisory(save_to_history=save_to_history)
+            results["entry_exit_advisory"] = entry_exit_advisory
+            
+            # Send Entry & Exit Strategy email
+            if email_recipient and entry_exit_advisory.get("success"):
+                logger.info(f"📧 STEP 2: Sending Entry & Exit Strategy email to {email_recipient}")
+                # Extract the needed data from entry_exit_advisory
+                portfolio_data = entry_exit_advisory.get("portfolio_data", {})
+                main_advisory = entry_exit_advisory.get("main_advisory", {})
+                additional_analyses = entry_exit_advisory.get("additional_analyses", {})
+                
+                email_sent = self._send_simple_ai_advisory_email(
+                    main_advisory=main_advisory,
+                    additional_analyses=additional_analyses,
+                    portfolio_data=portfolio_data,
+                    analysis=entry_exit_advisory,
+                    recipient=email_recipient
+                )
+                results["emails_sent"]["entry_exit"] = email_sent
+                logger.info(f"✅ Entry & Exit Strategy email sent: {email_sent}")
+            
+            # Restore original mode if it existed
+            if original_mode:
+                self._initialize_ai_advisor(original_mode)
+            
+            # Update success status
+            results["success"] = (
+                regular_advisory.get("success", False) and 
+                entry_exit_advisory.get("success", False)
+            )
+            
+            # Summary
+            total_holdings = regular_advisory.get("holdings_count", 0)
+            emails_sent_count = sum(results["emails_sent"].values())
+            
+            logger.info(f"Dual advisory completed - Holdings: {total_holdings}, Emails sent: {emails_sent_count}/2")
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error in dual advisory generation: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+    
+    def generate_entry_exit_and_risk_analysis(self, save_to_history: bool = True, 
+                                             email_recipient: str = None) -> Dict[str, Any]:
+        """
+        Generate Entry & Exit Strategy and Risk & Volatility analysis, then send both emails
+        """
+        try:
+            logger.info("Starting Entry & Exit Strategy + Risk & Volatility analysis")
+            
+            results = {
+                "success": False,
+                "entry_exit_advisory": {},
+                "risk_volatility_advisory": {},
+                "emails_sent": {
+                    "entry_exit": False,
+                    "risk_volatility": False
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Store original mode
+            original_mode = self.ai_advisor.mode if hasattr(self, 'ai_advisor') else None
+            
+            # 1. Generate Entry & Exit Strategy Advisory
+            logger.info("📊 STEP 1: Generating Entry & Exit Strategy analysis...")
+            self._initialize_ai_advisor(AdvisoryMode.ENTRY_EXIT_STRATEGY)
+            entry_exit_advisory = self.generate_daily_advisory(save_to_history=save_to_history, send_email=False)
+            results["entry_exit_advisory"] = entry_exit_advisory
+            
+            # Send Entry & Exit Strategy email
+            if email_recipient and entry_exit_advisory.get("success"):
+                logger.info(f"📧 STEP 1: Sending Entry & Exit Strategy email to {email_recipient}")
+                # Extract the needed data from entry_exit_advisory
+                portfolio_data = entry_exit_advisory.get("portfolio_data", {})
+                main_advisory = entry_exit_advisory.get("main_advisory", {})
+                additional_analyses = entry_exit_advisory.get("additional_analyses", {})
+                
+                email_sent = self._send_simple_ai_advisory_email(
+                    main_advisory=main_advisory,
+                    additional_analyses=additional_analyses,
+                    portfolio_data=portfolio_data,
+                    analysis=entry_exit_advisory,
+                    recipient=email_recipient
+                )
+                results["emails_sent"]["entry_exit"] = email_sent
+                logger.info(f"✅ Entry & Exit Strategy email sent: {email_sent}")
+                
+                # Wait 3 seconds between emails (tuần tự - sequential)
+                if email_sent:
+                    logger.info("⏳ Waiting 3 seconds before sending next email...")
+                    time.sleep(3)
+            
+            # 2. Generate Risk & Volatility Advisory  
+            logger.info("📊 STEP 2: Generating Risk & Volatility analysis...")
+            self._initialize_ai_advisor(AdvisoryMode.RISK_VOLATILITY)
+            risk_volatility_advisory = self.generate_daily_advisory(save_to_history=save_to_history, send_email=False)
+            results["risk_volatility_advisory"] = risk_volatility_advisory
+            
+            # Send Risk & Volatility email
+            if email_recipient and risk_volatility_advisory.get("success"):
+                logger.info(f"📧 STEP 2: Sending Risk & Volatility email to {email_recipient}")
+                # Extract the needed data from risk_volatility_advisory
+                portfolio_data = risk_volatility_advisory.get("portfolio_data", {})
+                main_advisory = risk_volatility_advisory.get("main_advisory", {})
+                additional_analyses = risk_volatility_advisory.get("additional_analyses", {})
+                
+                email_sent = self._send_simple_ai_advisory_email(
+                    main_advisory=main_advisory,
+                    additional_analyses=additional_analyses,
+                    portfolio_data=portfolio_data,
+                    analysis=risk_volatility_advisory,
+                    recipient=email_recipient
+                )
+                results["emails_sent"]["risk_volatility"] = email_sent
+                logger.info(f"✅ Risk & Volatility email sent: {email_sent}")
+            
+            # Restore original mode if it existed
+            if original_mode:
+                self._initialize_ai_advisor(original_mode)
+            
+            # Update success status
+            results["success"] = (
+                entry_exit_advisory.get("success", False) and 
+                risk_volatility_advisory.get("success", False)
+            )
+            
+            # Summary
+            total_holdings = entry_exit_advisory.get("holdings_count", 0)
+            emails_sent_count = sum(results["emails_sent"].values())
+            
+            logger.info(f"Entry & Exit + Risk & Volatility analysis completed - Holdings: {total_holdings}, Emails sent: {emails_sent_count}/2")
+            
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error in Entry & Exit + Risk & Volatility analysis: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }

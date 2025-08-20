@@ -25,6 +25,8 @@ class AdvisoryMode(Enum):
     GROWTH_ORIENTED = "growth_oriented"
     VALUE_INVESTOR = "value_investor"
     CONSERVATIVE = "conservative"
+    ENTRY_EXIT_STRATEGY = "entry_exit_strategy"
+    RISK_VOLATILITY = "risk_volatility"
 
 class RiskLevel(Enum):
     LOW = "low"
@@ -85,6 +87,20 @@ class EnhancedAIAdvisor:
                 "risk_tolerance": "low",
                 "rebalancing_frequency": "annually",
                 "key_metrics": ["beta", "volatility", "debt-to-equity", "dividend coverage"]
+            },
+            AdvisoryMode.ENTRY_EXIT_STRATEGY: {
+                "time_horizon": "3 months to 2 years",
+                "focus": "optimal entry points, exit strategies, support/resistance levels",
+                "risk_tolerance": "medium to high",
+                "rebalancing_frequency": "monthly",
+                "key_metrics": ["entry price range", "target prices", "support levels", "resistance levels"]
+            },
+            AdvisoryMode.RISK_VOLATILITY: {
+                "time_horizon": "ongoing",
+                "focus": "risk assessment, volatility analysis, position sizing, hedging strategies",
+                "risk_tolerance": "variable",
+                "rebalancing_frequency": "as needed",
+                "key_metrics": ["risk levels", "volatility measures", "correlation analysis", "position sizing"]
             }
         }
     
@@ -193,6 +209,14 @@ class EnhancedAIAdvisor:
                                custom_instructions: Optional[str]) -> str:
         """Create comprehensive portfolio analysis prompt"""
         
+        # Special handling for Entry & Exit Strategy mode
+        if self.mode == AdvisoryMode.ENTRY_EXIT_STRATEGY:
+            return self._create_entry_exit_prompt(portfolio_data, strategy_config, custom_instructions)
+        
+        # Special handling for Risk & Volatility mode
+        if self.mode == AdvisoryMode.RISK_VOLATILITY:
+            return self._create_risk_volatility_prompt(portfolio_data, strategy_config, custom_instructions)
+        
         mode_description = f"""
         Advisory Mode: {self.mode.value.replace('_', ' ').title()}
         Time Horizon: {strategy_config['time_horizon']}
@@ -277,6 +301,287 @@ class EnhancedAIAdvisor:
         
         return prompt
     
+    def _create_entry_exit_prompt(self, portfolio_data: Dict[str, Any], 
+                                 strategy_config: Dict[str, Any],
+                                 custom_instructions: Optional[str]) -> str:
+        """Create Entry & Exit Strategy specific prompt"""
+        
+        mode_description = f"""
+        Advisory Mode: Entry & Exit Strategy Analysis
+        Time Horizon: {strategy_config['time_horizon']}
+        Focus Areas: {strategy_config['focus']}
+        Key Metrics: {', '.join(strategy_config['key_metrics'])}
+        """
+        
+        custom_section = f"\nAdditional Instructions: {custom_instructions}" if custom_instructions else ""
+        
+        prompt = f"""
+        You are an expert Vietnamese stock market advisor specializing in Entry & Exit Strategy analysis.
+        
+        {mode_description}
+        
+        Portfolio Holdings:
+        {json.dumps(portfolio_data, indent=2)}
+        
+        SPECIFIC TASK: For each of my holdings, provide:
+        1. An optimal entry price range (if I were to buy more)
+        2. A clear exit strategy, including short-term (3-month) and long-term (1–2 years) target prices
+        3. Key support and resistance levels to watch
+        4. A brief explanation of the reasoning behind these recommendations, considering both technical and fundamental factors
+        
+        IMPORTANT OUTPUT REQUIREMENTS:
+        - Provide COMPLETE and VALID JSON format only
+        - All prices must be in VND (Vietnamese Dong)
+        - Ensure all JSON brackets and commas are properly closed
+        - Do not include any text outside the JSON structure
+        - Each stock MUST have entry_exit_analysis with all required fields
+        
+        Please provide analysis in the following EXACT JSON format:
+        {{
+            "portfolio_health": {{
+                "overall_score": <1-10>,
+                "health_status": "<excellent/good/fair/poor>",
+                "key_strengths": ["strength1", "strength2"],
+                "key_weaknesses": ["weakness1", "weakness2"]
+            }},
+            "diversification": {{
+                "score": <1-10>,
+                "sector_allocation": {{"Banking": 40, "Technology": 30, "Other": 30}},
+                "concentration_risk": "<low/medium/high>",
+                "recommendations": ["diversification_rec1", "diversification_rec2"]
+            }},
+            "risk_assessment": {{
+                "overall_risk": "<low/medium/high>",
+                "sector_risk": {{"Banking": "medium", "Technology": "high"}},
+                "position_sizing_issues": ["issue1", "issue2"],
+                "suggested_risk_controls": ["control1", "control2"]
+            }},
+            "performance_vs_benchmark": {{
+                "benchmark": "VN-Index",
+                "estimated_performance": "<assessment>",
+                "strategy_effectiveness": "<evaluation>"
+            }},
+            "entry_exit_analysis": [
+                {{
+                    "ticker": "<stock_symbol>",
+                    "current_position": "<number_of_shares>",
+                    "optimal_entry_range": {{
+                        "min_price": <price_in_vnd>,
+                        "max_price": <price_in_vnd>,
+                        "rationale": "<explanation>"
+                    }},
+                    "exit_strategy": {{
+                        "short_term_target": {{
+                            "price": <price_in_vnd>,
+                            "timeframe": "3 months",
+                            "probability": "<high/medium/low>",
+                            "rationale": "<explanation>"
+                        }},
+                        "long_term_target": {{
+                            "price": <price_in_vnd>,
+                            "timeframe": "1-2 years",
+                            "probability": "<high/medium/low>",
+                            "rationale": "<explanation>"
+                        }}
+                    }},
+                    "technical_levels": {{
+                        "support_levels": [<price1>, <price2>, <price3>],
+                        "resistance_levels": [<price1>, <price2>, <price3>],
+                        "key_moving_averages": {{
+                            "ma_20": <price>,
+                            "ma_50": <price>,
+                            "ma_200": <price>
+                        }}
+                    }},
+                    "fundamental_analysis": {{
+                        "pe_ratio": <ratio>,
+                        "pb_ratio": <ratio>,
+                        "growth_prospects": "<assessment>",
+                        "financial_health": "<strong/moderate/weak>"
+                    }},
+                    "risk_factors": ["risk1", "risk2", "risk3"],
+                    "catalysts": ["catalyst1", "catalyst2"],
+                    "recommendation": {{
+                        "action": "<buy_more/hold/partial_sell/full_sell>",
+                        "reasoning": "<detailed_explanation>",
+                        "stop_loss": <price_in_vnd>,
+                        "take_profit": <price_in_vnd>
+                    }}
+                }}
+            ],
+            "action_items": [
+                {{
+                    "action": "<specific_action>",
+                    "ticker": "<ticker>",
+                    "priority": "<high/medium/low>",
+                    "rationale": "<detailed_explanation>",
+                    "timeline": "<timeframe>"
+                }}
+            ],
+            "market_outlook": {{
+                "vietnam_market_view": "<bullish/neutral/bearish>",
+                "sector_outlook": {{"Banking": "positive", "Technology": "neutral"}},
+                "trading_environment": "<favorable/challenging>",
+                "key_market_drivers": ["driver1", "driver2"]
+            }},
+            "monitoring_schedule": {{
+                "daily_checks": ["price_levels", "volume_patterns"],
+                "weekly_reviews": ["technical_indicators", "news_flow"],
+                "trigger_events": ["earnings", "market_events"],
+                "rebalancing_signals": ["signal1", "signal2"]
+            }},
+            "educational_insights": {{
+                "trading_concepts": ["concept1", "concept2"],
+                "risk_management_tips": ["tip1", "tip2"],
+                "market_timing_guidance": ["guidance1", "guidance2"]
+            }}
+        }}
+        
+        Analysis Date: {datetime.now().strftime('%Y-%m-%d')}
+        Market: Vietnamese Stock Market (HOSE, HNX, UPCoM)
+        Currency: VND
+        {custom_section}
+        
+        Focus on providing specific, actionable entry and exit points with clear reasoning based on both technical analysis and fundamental factors. Consider current Vietnamese market conditions, economic outlook, and sector-specific trends.
+        """
+        
+        return prompt
+
+    def _create_risk_volatility_prompt(self, portfolio_data: Dict[str, Any], 
+                                     strategy_config: Dict[str, Any],
+                                     custom_instructions: Optional[str]) -> str:
+        """Create Risk & Volatility specific prompt"""
+        
+        mode_description = f"""
+        Advisory Mode: Risk & Volatility Analysis
+        Time Horizon: {strategy_config['time_horizon']}
+        Focus Areas: {strategy_config['focus']}
+        Key Metrics: {', '.join(strategy_config['key_metrics'])}
+        """
+        
+        custom_section = f"\nAdditional Instructions: {custom_instructions}" if custom_instructions else ""
+        
+        prompt = f"""
+        You are an expert Vietnamese risk management and volatility specialist.
+        
+        {mode_description}
+        
+        Portfolio Holdings:
+        {json.dumps(portfolio_data, indent=2)}
+        
+        SPECIFIC TASK: Evaluate the risk and volatility profile of my portfolio holdings. For each asset, identify whether it is high-risk, medium-risk, or relatively stable. Suggest how I should adjust position sizes to balance risk and manage potential downside. Include recommendations on diversification, correlation between assets, and possible hedging strategies.
+        
+        IMPORTANT OUTPUT REQUIREMENTS:
+        - Provide COMPLETE and VALID JSON format only
+        - Classify each holding's risk level (high/medium/low)
+        - Include specific position sizing recommendations
+        - Provide correlation analysis between holdings
+        - Suggest concrete hedging strategies for Vietnamese market
+        - Do not include any text outside the JSON structure
+        
+        Please provide analysis in the following JSON format:
+        {{
+            "portfolio_health": {{
+                "overall_score": <1-10>,
+                "health_status": "<excellent/good/fair/poor>",
+                "key_strengths": ["strength1", "strength2"],
+                "key_weaknesses": ["weakness1", "weakness2"]
+            }},
+            "diversification": {{
+                "score": <1-10>,
+                "sector_allocation": {{"Banking": 40, "Technology": 30, "Other": 30}},
+                "concentration_risk": "<low/medium/high>",
+                "recommendations": ["diversification_rec1", "diversification_rec2"]
+            }},
+            "risk_assessment": {{
+                "overall_risk": "<low/medium/high>",
+                "portfolio_volatility": "<low/medium/high>",
+                "beta_estimate": <number>,
+                "var_estimate": "<percentage>",
+                "max_drawdown_potential": "<percentage>"
+            }},
+            "individual_risk_analysis": [
+                {{
+                    "ticker": "<stock_symbol>",
+                    "current_position": "<number_of_shares>",
+                    "current_weight": "<percentage_of_portfolio>",
+                    "risk_classification": "<high/medium/low>",
+                    "volatility_level": "<high/medium/low>",
+                    "beta_estimate": <number>,
+                    "risk_factors": ["factor1", "factor2"],
+                    "position_sizing": {{
+                        "current_allocation": "<percentage>",
+                        "recommended_allocation": "<percentage>",
+                        "adjustment_needed": "<increase/decrease/maintain>",
+                        "rationale": "<explanation>"
+                    }},
+                    "correlation_notes": "<how_it_correlates_with_other_holdings>"
+                }}
+            ],
+            "correlation_analysis": {{
+                "high_correlation_pairs": [
+                    {{"assets": ["ticker1", "ticker2"], "correlation": <0.0-1.0>, "risk_impact": "<explanation>"}}
+                ],
+                "diversification_effectiveness": "<poor/fair/good/excellent>",
+                "concentration_risks": ["risk1", "risk2"]
+            }},
+            "hedging_strategies": [
+                {{
+                    "strategy": "<strategy_name>",
+                    "purpose": "<what_risk_it_addresses>",
+                    "implementation": "<how_to_implement>",
+                    "cost_estimate": "<relative_cost>",
+                    "effectiveness": "<low/medium/high>",
+                    "vietnamese_market_applicability": "<explanation>"
+                }}
+            ],
+            "position_sizing_recommendations": {{
+                "rebalancing_needed": <true/false>,
+                "suggested_changes": [
+                    {{"ticker": "<symbol>", "action": "<increase/decrease/maintain>", "target_weight": "<percentage>", "rationale": "<explanation>"}}
+                ],
+                "risk_budget_allocation": {{"conservative": "<percentage>", "moderate": "<percentage>", "aggressive": "<percentage>"}},
+                "cash_reserve_recommendation": "<percentage>"
+            }},
+            "action_items": [
+                {{
+                    "action": "<specific_action>",
+                    "ticker": "<ticker_or_ALL>",
+                    "priority": "<high/medium/low>",
+                    "rationale": "<detailed_explanation>",
+                    "timeline": "<timeframe>",
+                    "risk_impact": "<how_it_affects_portfolio_risk>"
+                }}
+            ],
+            "market_outlook": {{
+                "vietnam_market_risk": "<low/medium/high>",
+                "sector_risk_outlook": {{"Banking": "medium", "Technology": "high"}},
+                "macro_risk_factors": ["factor1", "factor2"],
+                "risk_monitoring_priorities": ["priority1", "priority2"]
+            }},
+            "monitoring_schedule": {{
+                "daily_risk_checks": ["metric1", "metric2"],
+                "weekly_volatility_review": ["review1", "review2"],
+                "monthly_correlation_analysis": ["analysis1", "analysis2"],
+                "stress_test_frequency": "<monthly/quarterly>"
+            }},
+            "educational_insights": {{
+                "risk_management_concepts": ["concept1", "concept2"],
+                "volatility_insights": ["insight1", "insight2"],
+                "hedging_education": ["education1", "education2"]
+            }}
+        }}
+        
+        Analysis Date: {datetime.now().strftime('%Y-%m-%d')}
+        Market: Vietnamese Stock Market (HOSE, HNX, UPCoM)
+        Currency: VND
+        {custom_section}
+        
+        Focus on providing specific, actionable risk management recommendations based on Vietnamese market conditions, available hedging instruments, and realistic position sizing strategies for retail investors.
+        """
+        
+        return prompt
+
     def _create_scenario_prompt(self, portfolio_data: Dict[str, Any], scenario: str) -> str:
         """Create scenario analysis prompt"""
         
@@ -547,7 +852,57 @@ class EnhancedAIAdvisor:
                 import re
                 json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
                 if json_match:
-                    analysis = json.loads(json_match.group())
+                    json_text = json_match.group()
+                    
+                    # Clean up common JSON issues more aggressively
+                    # Remove trailing commas before closing brackets
+                    json_text = re.sub(r',(\s*[}\]])', r'\1', json_text)
+                    
+                    # Fix incomplete strings at the end (like `"beta_estimate"` without value)
+                    json_text = re.sub(r'"[^"]*"\s*$', '""', json_text)
+                    
+                    # Fix incomplete key-value pairs (like `"key":` without value)
+                    json_text = re.sub(r':\s*$', ': ""', json_text)
+                    
+                    # Remove incomplete objects at the end
+                    json_text = re.sub(r',\s*"[^"]*"\s*:\s*"[^"]*$', '', json_text)
+                    
+                    # Ensure proper closing brackets if missing
+                    open_braces = json_text.count('{')
+                    close_braces = json_text.count('}')
+                    if open_braces > close_braces:
+                        json_text += '}' * (open_braces - close_braces)
+                    
+                    open_brackets = json_text.count('[')
+                    close_brackets = json_text.count(']')
+                    if open_brackets > close_brackets:
+                        json_text += ']' * (open_brackets - close_brackets)
+                    
+                    # Store complete AI response for email template
+                    complete_ai_response = ai_response
+                    
+                    # Try to parse JSON
+                    try:
+                        analysis = json.loads(json_text)
+                        logger.info("Successfully parsed AI response JSON")
+                        
+                        # Add the complete AI response for email template usage
+                        analysis['_complete_ai_response'] = complete_ai_response
+                        analysis['_json_text'] = json_text
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse AI response JSON: {e}")
+                        logger.error(f"Problematic JSON text (first 2000 chars): {json_text[:2000]}")
+                        logger.debug(f"Full JSON text length: {len(json_text)} characters")
+                        
+                        # Try to extract usable data with regex as fallback
+                        analysis = self._extract_data_with_regex(ai_response, portfolio_data)
+                        if analysis:
+                            analysis['_complete_ai_response'] = complete_ai_response
+                            analysis['_extraction_method'] = 'regex_fallback'
+                        else:
+                            analysis = self._fallback_portfolio_advisory(portfolio_data)
+                            analysis['_complete_ai_response'] = complete_ai_response
+                            analysis['_extraction_method'] = 'complete_fallback'
                     
                     # Add metadata
                     analysis['metadata'] = {
@@ -561,12 +916,107 @@ class EnhancedAIAdvisor:
             
             return self._fallback_portfolio_advisory(portfolio_data)
             
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse AI response JSON: {e}")
-            return self._fallback_portfolio_advisory(portfolio_data)
         except Exception as e:
             logger.error(f"Error processing portfolio response: {e}")
             return self._fallback_portfolio_advisory(portfolio_data)
+    
+    def _extract_data_with_regex(self, ai_response: str, portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract structured data from AI response using regex when JSON parsing fails"""
+        try:
+            import re
+            
+            # Initialize result structure
+            result = {}
+            
+            # Extract portfolio health score
+            score_match = re.search(r'"overall_score":\s*(\d+)', ai_response)
+            if score_match:
+                score = int(score_match.group(1))
+                result['portfolio_health'] = {
+                    'overall_score': score,
+                    'health_status': 'good' if score >= 7 else 'fair' if score >= 5 else 'poor',
+                    'key_strengths': ["Extracted from partial response"],
+                    'key_weaknesses': ["Partial data due to parsing error"]
+                }
+            
+            # Extract diversification info
+            result['diversification'] = {
+                'score': 6,
+                'sector_allocation': {"Banking": 40, "Technology": 20, "Other": 40},
+                'concentration_risk': 'medium',
+                'recommendations': ["Data extracted from incomplete response"]
+            }
+            
+            # Extract risk assessment
+            risk_match = re.search(r'"overall_risk":\s*"([^"]+)"', ai_response)
+            overall_risk = risk_match.group(1) if risk_match else 'medium'
+            
+            result['risk_assessment'] = {
+                'overall_risk': overall_risk,
+                'sector_risk': {"Banking": "medium", "Technology": "high"},
+                'position_sizing_issues': ["Partial analysis due to parsing error"],
+                'suggested_risk_controls': ["Review complete analysis in logs"]
+            }
+            
+            # Add entry/exit analysis for entry_exit_strategy mode
+            if self.mode == AdvisoryMode.ENTRY_EXIT_STRATEGY:
+                result['entry_exit_analysis'] = [{
+                    'ticker': pos.get('ticker', 'Unknown'),
+                    'current_position': pos.get('shares', 0),
+                    'optimal_entry_range': {
+                        'min_price': pos.get('avg_price', 0) * 0.9,
+                        'max_price': pos.get('avg_price', 0) * 1.1,
+                        'rationale': 'Estimated based on current price (partial data)'
+                    },
+                    'exit_strategy': {
+                        'short_term_target': {
+                            'price': pos.get('target_price', pos.get('avg_price', 0) * 1.2),
+                            'timeframe': '3 months',
+                            'probability': 'medium',
+                            'rationale': 'Estimated target (partial data)'
+                        },
+                        'long_term_target': {
+                            'price': pos.get('target_price', pos.get('avg_price', 0) * 1.5),
+                            'timeframe': '1-2 years',
+                            'probability': 'medium',
+                            'rationale': 'Long-term growth estimate (partial data)'
+                        }
+                    },
+                    'technical_levels': {
+                        'support_levels': [pos.get('avg_price', 0) * 0.9, pos.get('avg_price', 0) * 0.85],
+                        'resistance_levels': [pos.get('avg_price', 0) * 1.1, pos.get('avg_price', 0) * 1.2],
+                        'key_moving_averages': {'ma_20': 0, 'ma_50': 0, 'ma_200': 0}
+                    },
+                    'recommendation': {
+                        'action': 'hold',
+                        'reasoning': 'Partial analysis - review complete response in logs',
+                        'stop_loss': pos.get('avg_price', 0) * 0.85,
+                        'take_profit': pos.get('target_price', pos.get('avg_price', 0) * 1.2)
+                    }
+                } for pos in portfolio_data.get('positions', [])[:5]]  # Limit to 5 positions
+            
+            # Default action items
+            result['action_items'] = [{
+                'action': 'review',
+                'ticker': 'ALL',
+                'priority': 'high',
+                'rationale': 'Complete analysis failed to parse - review logs for full AI response',
+                'timeline': 'immediate'
+            }]
+            
+            result['market_outlook'] = {
+                'vietnam_market_view': 'neutral',
+                'sector_outlook': {"Banking": "neutral", "Technology": "neutral"},
+                'trading_environment': 'challenging',
+                'key_market_drivers': ["Partial analysis available"]
+            }
+            
+            logger.info("Successfully extracted partial data using regex fallback")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to extract data with regex: {e}")
+            return None
     
     def _process_scenario_response(self, response: Dict[str, Any]) -> Dict[str, Any]:
         """Process AI response for scenario analysis"""
