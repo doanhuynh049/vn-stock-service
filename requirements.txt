@@ -1,48 +1,144 @@
-# Core web framework
-FastAPI==0.68.2
-uvicorn==0.15.0
+# =============================================================================
+# VN Stock Advisory - Enhanced AI-First System Dependencies
+# =============================================================================
+
+# Core web framework and API
+FastAPI==0.104.1
+uvicorn[standard]==0.24.0
 
 # Data validation and configuration
-pydantic==1.9.2
-python-dotenv==0.19.2
+pydantic==2.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
 
 # HTTP client libraries
-httpx==0.22.0
-requests==2.27.1
+httpx==0.25.2
+requests==2.31.0
 
 # Scheduling and background tasks
-APScheduler==3.9.1
-pytz==2022.7
+APScheduler==3.10.4
+pytz==2023.3
 
 # Email functionality
-email-validator==1.3.1
+email-validator==2.1.0
 premailer==3.10.0
 
 # HTML parsing and templating
-beautifulsoup4==4.11.2
-jinja2==3.0.3
+beautifulsoup4==4.12.2
+jinja2==3.1.2
 
 # File operations
-aiofiles==0.8.0
+aiofiles==23.2.1
 
 # Data analysis and processing
-pandas==1.3.5
-numpy==1.19.5
+pandas==2.1.4
+numpy==1.24.4
 
 # Technical analysis
 ta==0.10.2
 
 # Error handling and retries
-tenacity==8.1.0
+tenacity==8.2.3
 
 # Logging enhancements
-structlog==22.3.0
+structlog==23.2.0
 
 # CLI interface
-click==8.0.4
-rich==12.6.0
+click==8.1.7
+rich==13.7.0
 
-# Testing (development only)
-pytest==7.2.2
-pytest-asyncio==0.20.3
-pytest-mock==3.10.0
+# =============================================================================
+# Enhanced AI-First System Dependencies
+# =============================================================================
+
+# YAML configuration support
+PyYAML==6.0.1
+
+# TOML configuration support (Python 3.11+ has tomllib built-in)
+tomli==2.0.1; python_version < "3.11"
+tomli-w==1.0.0
+
+# Database support for historical tracking
+# Note: sqlite3 is included in Python standard library
+
+# Advanced typing support for Python < 3.8
+typing-extensions==4.8.0
+
+# JSON schema validation
+jsonschema==4.20.0
+
+# =============================================================================
+# Development and Testing Dependencies
+# =============================================================================
+
+# Testing framework
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+pytest-cov==4.1.0
+
+# Code formatting and linting
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+
+# Type checking
+mypy==1.7.1
+
+# Security scanning
+bandit==1.7.5
+
+# =============================================================================
+# Optional Dependencies for Enhanced Features
+# =============================================================================
+
+# Advanced data visualization (optional)
+# matplotlib==3.8.2
+# seaborn==0.13.0
+
+# Advanced statistical analysis (optional) 
+# scipy==1.11.4
+# scikit-learn==1.3.2
+
+# Time series analysis (optional)
+# statsmodels==0.14.0
+
+# =============================================================================
+# Production Dependencies
+# =============================================================================
+
+# Production WSGI server (alternative to uvicorn)
+gunicorn==21.2.0
+
+# Health monitoring
+psutil==5.9.6
+
+# Memory optimization
+pympler==0.9
+
+# Timezone handling
+tzdata==2023.3
+
+# =============================================================================
+# Version Compatibility Notes
+# =============================================================================
+# 
+# This requirements.txt is designed for:
+# - Python 3.8+ (recommended: Python 3.9+)
+# - Enhanced AI-first architecture
+# - No external price data APIs required
+# - SQLite for historical data (no additional DB setup needed)
+# - YAML/TOML configuration support
+# - Comprehensive testing and development tools
+#
+# Key Features Supported:
+# - Multiple AI advisory modes
+# - Scenario analysis and what-if planning  
+# - Historical portfolio tracking
+# - User configuration management
+# - Email notifications with HTML templates
+# - FastAPI web interface and REST API
+# - Automated scheduling with APScheduler
+# - Comprehensive logging and monitoring
+#
+# =============================================================================

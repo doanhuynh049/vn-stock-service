@@ -1,0 +1,101 @@
+# Enhanced VN Stock Advisory - User Configuration
+# This file contains all your personalized settings for the AI advisory system
+
+# Advisory Configuration
+advisory:
+  # Primary advisory mode - determines the AI's analysis style
+  # Options: long_term, swing_trader, dividend_focused, growth_oriented, value_investor, conservative
+  primary_mode: "long_term"
+  
+  # Enable scenario analysis (what-if scenarios)
+  enable_scenario_analysis: true
+  
+  # Benchmark comparisons for portfolio performance
+  benchmark_comparisons:
+    - "VN-Index"
+    - "VN30-Index"
+    - "HNX-Index"
+  
+  # Custom instructions for the AI advisor
+  custom_instructions: |
+    Focus on Vietnamese market conditions and regulatory changes.
+    Consider dividend yield and company fundamentals.
+    Pay attention to sector rotation trends.
+
+# Risk Management Configuration  
+risk:
+  # Risk tolerance level
+  # Options: conservative, moderate, aggressive
+  risk_tolerance: "moderate"
+  
+  # Maximum position size as percentage of portfolio
+  max_position_size: 25.0
+  
+  # Maximum sector concentration percentage
+  max_sector_concentration: 40.0
+  
+  # Default stop loss percentage
+  default_stop_loss: -15.0
+  
+  # Position sizing strategy
+  # Options: equal_weight, risk_weighted, conviction_weighted
+  position_sizing: "risk_weighted"
+
+# Email Notification Configuration
+email:
+  # Enable email notifications
+  enabled: true
+  
+  # Email recipients (list of email addresses)
+  recipients:
+    - "quocthien049@gmail.com"
+  
+  # Email schedule - when to send daily reports
+  schedule:
+    # Time in HH:MM format (24-hour)
+    time: "08:00"
+    # Days of week (0=Monday, 6=Sunday)
+    days: [0, 1, 2, 3, 4]  # Monday to Friday
+  
+  # Include detailed analysis in emails
+  include_detailed_analysis: true
+  
+  # Include scenario analysis in emails
+  include_scenarios: false
+
+# Language and Localization
+language:
+  # Primary language for reports
+  # Options: en (English), vi (Vietnamese)
+  primary: "en"
+  
+  # Enable bilingual reports (both English and Vietnamese)
+  bilingual: false
+  
+  # Currency format
+  currency_format: "VND"
+  
+  # Date format
+  date_format: "DD/MM/YYYY"
+
+# Caching and Performance
+cache:
+  # Enable local caching of AI responses
+  enabled: true
+  
+  # Cache duration in hours
+  duration_hours: 24
+  
+  # Maximum cache size (number of entries)
+  max_entries: 1000
+
+# Experimental Features
+experimental:
+  # Enable advanced AI reasoning chains
+  enable_advanced_reasoning: false
+  
+  # Enable multi-model ensemble (if multiple AI models available)
+  enable_ensemble: false
+  
+  # Enable sentiment analysis integration
+  enable_sentiment: false

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-VN Stock Advisory - Main Entry Point
-Simplified version focused on Gemini AI integration
+VN Stock Advisory - Enhanced AI-First System
+- No price fetching, pure AI analysis
+- Holdings-only approach with comprehensive advisory
+- Multiple analysis modes and scenarios
+- Historical tracking and user configuration
 """
 
 import os
 import sys
-import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
@@ -15,8 +17,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def main():
-    """Main entry point"""
-    print("=== VN Stock Advisory System ===")
+    """Main entry point for enhanced AI-first advisory system"""
+    print("=== VN Stock Advisory - Enhanced AI System ===")
     print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Load environment
@@ -28,95 +30,203 @@ def main():
         print("✗ python-dotenv not installed. Run: pip install python-dotenv")
         return False
     
-    # Test Gemini API
+    # Test system configuration
     try:
-        print("\n=== Testing Gemini AI ===")
-        success = test_gemini_integration()
-        if not success:
+        print("\n=== System Configuration Test ===")
+        if not test_configuration():
             return False
     except Exception as e:
-        print(f"✗ Gemini test failed: {e}")
+        print(f"✗ Configuration test failed: {e}")
         return False
     
-    # Load sample holdings
+    # Initialize enhanced advisory engine
     try:
-        print("\n=== Loading Portfolio ===")
-        portfolio = load_sample_portfolio()
-        print(f"✓ Portfolio loaded: {len(portfolio['positions'])} positions")
+        print("\n=== Initializing Enhanced Advisory Engine ===")
+        engine = initialize_advisory_engine()
+        if not engine:
+            return False
+        print("✓ Enhanced advisory engine initialized")
     except Exception as e:
-        print(f"✗ Portfolio loading failed: {e}")
+        print(f"✗ Engine initialization failed: {e}")
         return False
     
-    # Generate sample advisory
+    # Test holdings loading
     try:
-        print("\n=== Generating Sample Advisory ===")
-        advisory = generate_sample_advisory(portfolio)
-        print("✓ Sample advisory generated")
-        print(f"  Action: {advisory.get('action', 'N/A')}")
-        print(f"  Rationale: {advisory.get('rationale', 'N/A')[:60]}...")
+        print("\n=== Testing Holdings Provider ===")
+        if not test_holdings_provider():
+            return False
+    except Exception as e:
+        print(f"✗ Holdings provider test failed: {e}")
+        return False
+    
+    # Generate comprehensive advisory
+    try:
+        print("\n=== Generating Comprehensive Advisory ===")
+        advisory = engine.generate_daily_advisory(save_to_history=False)
+        
+        if "error" in advisory:
+            print(f"✗ Advisory generation failed: {advisory['error']}")
+            return False
+            
+        print("✓ Comprehensive advisory generated successfully")
+        print(f"  Advisory Mode: {advisory.get('advisory_mode', 'N/A')}")
+        print(f"  Portfolio Positions: {advisory.get('portfolio_summary', {}).get('total_positions', 0)}")
+        print(f"  Total Value: {advisory.get('portfolio_summary', {}).get('total_invested_value', 0):,.0f} VND")
+        
+        # Show sample advisory content
+        main_advisory = advisory.get('main_advisory', {})
+        if main_advisory:
+            print(f"  Key Insights: {len(main_advisory.get('insights', []))} generated")
+            print(f"  Action Items: {len(main_advisory.get('action_items', []))} identified")
+        
     except Exception as e:
         print(f"✗ Advisory generation failed: {e}")
         return False
     
-    print("\n✓ All systems working!")
-    print("\nNext steps:")
-    print("1. Configure your email settings in .env")
-    print("2. Set DRY_RUN=false to send real emails")
+    # Test scenario analysis
+    try:
+        print("\n=== Testing Scenario Analysis ===")
+        scenario_result = engine.analyze_scenario("What if the banking sector declines by 15%?")
+        
+        if "error" in scenario_result:
+            print(f"⚠ Scenario analysis warning: {scenario_result['error']}")
+        else:
+            print("✓ Scenario analysis working")
+            
+    except Exception as e:
+        print(f"⚠ Scenario analysis test failed: {e}")
+    
+    # Test historical tracking
+    try:
+        print("\n=== Testing Historical Tracking ===")
+        evolution = engine.get_portfolio_evolution(days=7)
+        
+        if "error" in evolution:
+            print(f"⚠ Historical tracking warning: {evolution['error']}")
+        else:
+            print("✓ Historical tracking available")
+            print(f"  Historical snapshots: {evolution.get('historical_snapshots', 0)}")
+            
+    except Exception as e:
+        print(f"⚠ Historical tracking test failed: {e}")
+    
+    print("\n✓ Enhanced AI-First Advisory System Operational!")
+    print("\nSystem Features:")
+    print("• AI-only analysis (no price fetching)")
+    print("• Multiple advisory modes (long-term, swing trading, etc.)")
+    print("• Scenario analysis and what-if planning")
+    print("• Historical portfolio tracking")
+    print("• User configuration management")
+    print("• Risk management recommendations")
+    
+    print("\nNext Steps:")
+    print("1. Customize your advisory preferences in config/user_config.yaml")
+    print("2. Set up email notifications in .env")
     print("3. Run the scheduler: python3 run_scheduler.py")
+    print("4. Access web dashboard (coming soon)")
     
     return True
 
-def test_gemini_integration():
-    """Test Gemini API integration"""
-    import requests
+def test_configuration():
+    """Test system configuration"""
     
+    # Test Gemini AI API
     api_key = os.getenv('LLM_API_KEY')
     api_url = os.getenv('LLM_PROVIDER')
     
     if not api_key or not api_url:
-        print("✗ Gemini API configuration missing")
+        print("✗ Gemini AI configuration missing")
+        print("  Please set LLM_API_KEY and LLM_PROVIDER in .env")
         return False
     
-    # Simple test prompt
-    prompt = "Respond with this exact JSON: {'status': 'ok', 'message': 'Gemini API working'}"
+    print("✓ Gemini AI configuration found")
     
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 100}
-    }
-    
+    # Test basic API connectivity
     try:
+        import requests
+        
+        test_prompt = "Respond with exactly: 'API_OK'"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "contents": [{"parts": [{"text": test_prompt}]}],
+            "generationConfig": {"temperature": 0.1, "maxOutputTokens": 10}
+        }
+        
         url = f"{api_url}?key={api_key}"
         response = requests.post(url, headers=headers, json=data, timeout=10)
         
         if response.status_code == 200:
-            result = response.json()
-            if "candidates" in result:
-                content = result["candidates"][0]["content"]["parts"][0]["text"]
-                print(f"✓ Gemini API working: {content[:50]}...")
-                return True
-        
-        print(f"✗ Gemini API error: {response.status_code}")
-        return False
-        
+            print("✓ Gemini AI API connectivity confirmed")
+            return True
+        else:
+            print(f"✗ Gemini AI API error: {response.status_code}")
+            return False
+            
     except Exception as e:
-        print(f"✗ Gemini API exception: {e}")
+        print(f"✗ Gemini AI API test failed: {e}")
         return False
 
-def load_sample_portfolio():
-    """Load sample portfolio data"""
-    portfolio_file = "data/holdings.json"
-    
-    if os.path.exists(portfolio_file):
-        with open(portfolio_file, 'r') as f:
-            return json.load(f)
-    
-    # Create sample portfolio if not exists
+def initialize_advisory_engine():
+    """Initialize the enhanced advisory engine"""
+    try:
+        from advisory.enhanced_engine import EnhancedAdvisoryEngine
+        
+        # Check if holdings file exists, create sample if not
+        holdings_file = "data/holdings.json"
+        if not os.path.exists(holdings_file):
+            create_sample_holdings()
+        
+        # Initialize engine
+        engine = EnhancedAdvisoryEngine(holdings_file)
+        return engine
+        
+    except ImportError as e:
+        print(f"✗ Import error: {e}")
+        print("  Make sure all required modules are available")
+        return None
+    except Exception as e:
+        print(f"✗ Engine initialization error: {e}")
+        return None
+
+def test_holdings_provider():
+    """Test the holdings provider"""
+    try:
+        from adapters.holdings_provider import HoldingsOnlyProvider
+        
+        provider = HoldingsOnlyProvider("data/holdings.json")
+        
+        # Validate holdings file
+        validation = provider.validate_holdings_file()
+        if not validation['valid']:
+            print(f"✗ Holdings validation failed: {validation['errors']}")
+            return False
+        
+        # Get portfolio summary
+        summary = provider.get_portfolio_summary()
+        print(f"✓ Portfolio loaded: {summary['total_positions']} positions")
+        print(f"  Owner: {summary['owner']}")
+        print(f"  Total invested: {summary['total_invested_value']:,.0f} VND")
+        
+        # Show positions
+        for i, pos in enumerate(summary['positions'][:3], 1):  # Show first 3
+            print(f"  {i}. {pos['ticker']}: {pos['shares']} shares @ {pos['avg_price']:,.0f} VND")
+        
+        if len(summary['positions']) > 3:
+            print(f"  ... and {len(summary['positions']) - 3} more positions")
+        
+        return True
+        
+    except Exception as e:
+        print(f"✗ Holdings provider test failed: {e}")
+        return False
+
+def create_sample_holdings():
+    """Create sample holdings file if it doesn't exist"""
     sample_portfolio = {
         "owner": "Quat",
         "currency": "VND",
         "timezone": "Asia/Ho_Chi_Minh",
+        "last_updated": datetime.now().isoformat(),
         "positions": [
             {
                 "ticker": "FPT",
@@ -124,15 +234,35 @@ def load_sample_portfolio():
                 "shares": 500,
                 "avg_price": 121000,
                 "target_price": 145000,
-                "max_drawdown_pct": -12
+                "max_drawdown_pct": -12,
+                "notes": "Technology leader in Vietnam"
             },
             {
                 "ticker": "VNM",
-                "exchange": "HOSE", 
+                "exchange": "HOSE",
                 "shares": 300,
                 "avg_price": 68000,
                 "target_price": 80000,
-                "max_drawdown_pct": -10
+                "max_drawdown_pct": -10,
+                "notes": "Leading dairy and beverage company"
+            },
+            {
+                "ticker": "VCB",
+                "exchange": "HOSE",
+                "shares": 200,
+                "avg_price": 95000,
+                "target_price": 110000,
+                "max_drawdown_pct": -15,
+                "notes": "Top banking stock"
+            },
+            {
+                "ticker": "HPG",
+                "exchange": "HOSE",
+                "shares": 800,
+                "avg_price": 32000,
+                "target_price": 38000,
+                "max_drawdown_pct": -18,
+                "notes": "Steel industry leader"
             }
         ]
     }
@@ -141,92 +271,10 @@ def load_sample_portfolio():
     os.makedirs("data", exist_ok=True)
     
     # Save sample portfolio
-    with open(portfolio_file, 'w') as f:
-        json.dump(sample_portfolio, f, indent=2)
+    with open("data/holdings.json", 'w', encoding='utf-8') as f:
+        json.dump(sample_portfolio, f, indent=2, ensure_ascii=False)
     
-    return sample_portfolio
-
-def generate_sample_advisory(portfolio):
-    """Generate sample advisory using Gemini"""
-    import requests
-    
-    # Use first position for test
-    position = portfolio["positions"][0]
-    
-    # Create advisory prompt
-    prompt = f"""
-    You are a Vietnam stock analyst. Analyze this position and respond in JSON format:
-    
-    Ticker: {position["ticker"]}
-    Current Holdings: {position["shares"]} shares
-    Average Price: {position["avg_price"]:,} VND
-    Target Price: {position["target_price"]:,} VND
-    
-    Respond with this JSON structure:
-    {{
-        "action": "hold",
-        "rationale": "Brief analysis of the position",
-        "key_signals": ["signal1", "signal2"],
-        "risk_notes": "Risk assessment",
-        "levels": {{
-            "add_zone": [120000, 125000],
-            "take_profit_zone": [140000, 150000],
-            "hard_stop": 110000
-        }}
-    }}
-    """
-    
-    api_key = os.getenv('LLM_API_KEY')
-    api_url = os.getenv('LLM_PROVIDER')
-    
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 400}
-    }
-    
-    try:
-        url = f"{api_url}?key={api_key}"
-        response = requests.post(url, headers=headers, json=data, timeout=15)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if "candidates" in result:
-                content = result["candidates"][0]["content"]["parts"][0]["text"]
-                
-                # Try to parse JSON response
-                try:
-                    return json.loads(content)
-                except json.JSONDecodeError:
-                    # Extract JSON from text if needed
-                    import re
-                    json_match = re.search(r'\{.*\}', content, re.DOTALL)
-                    if json_match:
-                        return json.loads(json_match.group())
-                    
-                    # Fallback response
-                    return {
-                        "action": "hold",
-                        "rationale": "AI response could not be parsed as JSON",
-                        "key_signals": ["API_RESPONSE_UNPARSED"],
-                        "risk_notes": "Manual review recommended"
-                    }
-        
-        # Fallback response for API errors
-        return {
-            "action": "hold", 
-            "rationale": "API request failed - manual review needed",
-            "key_signals": ["API_ERROR"],
-            "risk_notes": "Check API configuration"
-        }
-        
-    except Exception as e:
-        return {
-            "action": "hold",
-            "rationale": f"Exception occurred: {str(e)[:50]}...",
-            "key_signals": ["EXCEPTION"],
-            "risk_notes": "System error - manual review required"
-        }
+    print("✓ Sample holdings file created")
 
 if __name__ == "__main__":
     try:

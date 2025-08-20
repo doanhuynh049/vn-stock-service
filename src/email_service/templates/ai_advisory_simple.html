@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 AI Portfolio Advisory - {{ date }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .main-title {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0;
+        }
+        .date-info {
+            font-size: 1.1em;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .section-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 5px;
+        }
+        .health-score {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .health-excellent { background-color: #d4edda; color: #155724; }
+        .health-good { background-color: #d1ecf1; color: #0c5460; }
+        .health-fair { background-color: #fff3cd; color: #856404; }
+        .health-poor { background-color: #f8d7da; color: #721c24; }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px;
+            background-color: white;
+            border-radius: 5px;
+        }
+        .metric-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .metric-value {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .recommendations {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .recommendation-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 3px solid #28a745;
+        }
+        .action-item {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+        .action-priority-high { border-left-color: #dc3545; }
+        .action-priority-medium { border-left-color: #ffc107; }
+        .action-priority-low { border-left-color: #28a745; }
+        .sector-allocation {
+            margin: 15px 0;
+        }
+        .sector-bar {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .sector-name {
+            width: 120px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .sector-progress {
+            flex: 1;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+        .sector-fill {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 10px;
+        }
+        .sector-percentage {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .strengths-weaknesses {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        .strengths, .weaknesses {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .strengths {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .weaknesses {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .strengths h4, .weaknesses h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="main-title">🤖 AI Portfolio Advisory</h1>
+            <div class="date-info">{{ date }} • {{ portfolio.total_positions }} Holdings • AI Analysis</div>
+        </div>
+
+        <!-- Portfolio Health -->
+        <div class="section">
+            <h2 class="section-title">📊 Portfolio Health</h2>
+            <div class="health-score health-{{ main_advisory.portfolio_health.health_status }}">
+                Score: {{ main_advisory.portfolio_health.overall_score }}/10 - {{ main_advisory.portfolio_health.health_status|title }}
+            </div>
+            
+            <div class="strengths-weaknesses">
+                <div class="strengths">
+                    <h4>💪 Key Strengths</h4>
+                    <ul>
+                        {% for strength in main_advisory.portfolio_health.key_strengths %}
+                        <li>{{ strength }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="weaknesses">
+                    <h4>⚠️ Areas to Improve</h4>
+                    <ul>
+                        {% for weakness in main_advisory.portfolio_health.key_weaknesses %}
+                        <li>{{ weakness }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diversification -->
+        <div class="section">
+            <h2 class="section-title">🎯 Portfolio Diversification</h2>
+            <div class="metric-row">
+                <span class="metric-label">Diversification Score:</span>
+                <span class="metric-value">{{ main_advisory.diversification.score }}/10</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Concentration Risk:</span>
+                <span class="metric-value">{{ main_advisory.diversification.concentration_risk|title }}</span>
+            </div>
+            
+            <h4>Sector Allocation:</h4>
+            <div class="sector-allocation">
+                {% for sector, percentage in main_advisory.diversification.sector_allocation.items() %}
+                <div class="sector-bar">
+                    <div class="sector-name">{{ sector }}:</div>
+                    <div class="sector-progress">
+                        <div class="sector-fill" style="width: {{ percentage }}%"></div>
+                    </div>
+                    <div class="sector-percentage">{{ percentage }}%</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if main_advisory.diversification.recommendations %}
+            <div class="recommendations">
+                <h4>📈 Diversification Recommendations:</h4>
+                {% for rec in main_advisory.diversification.recommendations %}
+                <div class="recommendation-item">{{ rec }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Risk Assessment -->
+        {% if additional_analyses.risk_analysis %}
+        <div class="section">
+            <h2 class="section-title">⚡ Risk Analysis</h2>
+            {% if main_advisory.risk_assessment %}
+            <div class="metric-row">
+                <span class="metric-label">Overall Risk Level:</span>
+                <span class="metric-value">{{ main_advisory.risk_assessment.overall_risk|title }}</span>
+            </div>
+            {% endif %}
+            {% if additional_analyses.risk_analysis.risk_metrics %}
+            <div class="metric-row">
+                <span class="metric-label">Portfolio Beta:</span>
+                <span class="metric-value">{{ additional_analyses.risk_analysis.risk_metrics.estimated_portfolio_beta }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Concentration Risk Score:</span>
+                <span class="metric-value">{{ additional_analyses.risk_analysis.risk_metrics.concentration_risk_score }}/10</span>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Action Items -->
+        {% if main_advisory.action_items %}
+        <div class="section">
+            <h2 class="section-title">🎯 AI Recommendations</h2>
+            {% for action in main_advisory.action_items %}
+            <div class="action-item action-priority-{{ action.priority }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong>{{ action.action|title }}: {{ action.ticker }}</strong>
+                    <span style="background-color: #6c757d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em;">
+                        {{ action.priority|title }}
+                    </span>
+                </div>
+                <div style="margin-bottom: 8px;">{{ action.rationale }}</div>
+                {% if action.target_allocation %}
+                <div style="font-size: 0.9em; color: #6c757d;">
+                    Target: {{ action.target_allocation }} | Timeline: {{ action.timeline }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Benchmark Comparison -->
+        {% if additional_analyses.benchmark_comparison %}
+        <div class="section">
+            <h2 class="section-title">📈 Benchmark Comparison</h2>
+            {% for benchmark, data in additional_analyses.benchmark_comparison.benchmark_comparison.items() %}
+            <div class="metric-row">
+                <span class="metric-label">vs {{ benchmark }}:</span>
+                <span class="metric-value">Expected outperformance: {{ data.expected_outperformance }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Portfolio Holdings Summary -->
+        <div class="section">
+            <h2 class="section-title">💼 Holdings Summary</h2>
+            <div class="metric-row">
+                <span class="metric-label">Total Positions:</span>
+                <span class="metric-value">{{ portfolio.total_positions }}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Total Investment Value:</span>
+                <span class="metric-value">{{ "{:,.0f}".format(portfolio.total_invested_value) }} VND</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Portfolio Owner:</span>
+                <span class="metric-value">{{ portfolio.owner }}</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Generated by AI Advisory System | {{ generated_at|strftime('%B %d, %Y at %I:%M %p') }}</p>
+            <p>This analysis is AI-generated and should be used for informational purposes only.<br>
+            Always consult with a qualified financial advisor before making investment decisions.</p>
+        </div>
+    </div>
+</body>
+</html>

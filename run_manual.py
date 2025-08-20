@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-VN Stock Advisory - Manual Run
-Run the advisory task once manually for testing
+VN Stock Advisory - Manual Run (Enhanced AI-First Version)
+Run the enhanced AI advisory task once manually for testing.
+Uses holdings-only data with advanced AI analysis.
 """
 
 import os
@@ -15,9 +16,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 def run_advisory_task():
-    """Run the advisory task once"""
-    print("=== VN Stock Advisory - Manual Run ===")
+    """Run the enhanced AI advisory task once for manual testing"""
+    print("=== VN Stock Advisory - Enhanced Manual Run ===")
     print("Started at: {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+    
+    # Configure debug logging
+    import logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    )
     
     # Load environment
     try:
@@ -34,21 +42,74 @@ def run_advisory_task():
     os.makedirs("output", exist_ok=True)
     
     try:
-        # Import components
-        from scheduler.jobs import StockAdvisoryScheduler
+        # Import components for enhanced AI-first system
+        from adapters.holdings_provider import HoldingsOnlyProvider
+        from advisory.enhanced_ai_advisor import EnhancedAIAdvisor, AdvisoryMode
+        from advisory.enhanced_engine import EnhancedAdvisoryEngine
+        from config.user_config import ConfigManager
+        from config.settings import Settings
+        from email_service.sender import EmailSender, DryRunEmailSender
+        from data.historical_store import HistoricalDataStore
         
-        print("[OK] Components loaded")
+        print("[OK] Enhanced components loaded")
         
-        # Create scheduler (but don't start it)
-        scheduler = StockAdvisoryScheduler()
+        # Load settings
+        settings = Settings()
         
-        # Run the task directly (it's not async)
-        print("\n=== Running Advisory Task ===")
+        # Initialize configuration
+        print("\n=== Initializing Enhanced Advisory Engine ===")
+        config_manager = ConfigManager()
+        config = config_manager.load_config()
         
-        # Run the daily advisory task
-        scheduler.run_daily_advisory()
+        # Initialize components
+        holdings_provider = HoldingsOnlyProvider()
+        ai_advisor = EnhancedAIAdvisor(
+            api_key=settings.LLM_API_KEY,
+            api_url=settings.LLM_PROVIDER
+        )
         
-        print("[OK] Advisory task completed!")
+        # Email sender - use real sender if SMTP is configured
+        if settings.DRY_RUN or not settings.SMTP_HOST:
+            email_sender = DryRunEmailSender()
+            print("[INFO] Using DryRunEmailSender (no actual emails will be sent)")
+        else:
+            email_sender = EmailSender(
+                smtp_host=settings.SMTP_HOST,
+                smtp_port=settings.SMTP_PORT,
+                smtp_user=settings.SMTP_USER,
+                smtp_pass=settings.SMTP_PASS,
+                mail_from=settings.MAIL_FROM,
+                smtp_tls=settings.SMTP_TLS
+            )
+            print(f"[INFO] Using EmailSender (will send emails to {settings.MAIL_TO})")
+        historical_store = HistoricalDataStore()
+        
+        # Create enhanced engine with just the holdings file path
+        # Create enhanced engine with email sender
+        engine = EnhancedAdvisoryEngine(
+            holdings_file=settings.HOLDINGS_FILE,
+            email_sender=email_sender
+        )
+        
+        print("[OK] Enhanced advisory engine initialized")
+        
+        # Run the enhanced advisory task
+        print("\n=== Running Enhanced AI Advisory Task ===")
+        result = engine.generate_daily_advisory()
+        
+        if result.get("success"):
+            print("[OK] Enhanced advisory task completed!")
+            
+            # Show summary
+            summary = result.get("summary", {})
+            print(f"\nAdvisory Summary:")
+            print(f"  - Holdings processed: {summary.get('holdings_count', 0)}")
+            print(f"  - Advisory mode: {summary.get('advisory_mode', 'N/A')}")
+            print(f"  - Email sent: {summary.get('email_sent', False)}")
+            print(f"  - Duration: {summary.get('duration_seconds', 0):.2f}s")
+        else:
+            print(f"[ERROR] Advisory task failed: {result.get('error', 'Unknown error')}")
+            return False
         
         # Show output files
         output_dir = Path("output")

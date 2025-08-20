@@ -12,269 +12,81 @@ logger = logging.getLogger(__name__)
 
 class RealVNStockProvider(DataProviderInterface):
     """
-    Real Vietnamese stock data provider using multiple free sources
-    - Primary: SSI (Sài Gòn Securities Inc.) public API
-    - Fallback: CafeF.vn web scraping
-    - News: VnExpress and CafeF
+    Simplified Vietnamese stock data provider using AI analysis
+    - Primary: AI-based stock analysis and price estimation
+    - Focuses on portfolio analysis rather than real-time data fetching
     """
     
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "vi-VN,vi;q=0.9,en;q=0.8",
-            "Referer": "https://iboard.ssi.com.vn/"
+            "User-Agent": "VN-Stock-Advisory/1.0",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
         })
         
         # Initialize API logger
         self.api_logger = APILogger()
         
-        # SSI API endpoints (free, no auth required)
-        self.ssi_base = "https://iboard.ssi.com.vn/dchart/api"
-        self.cafef_base = "https://s.cafef.vn"
-        
-        # Rate limiting
+        # Rate limiting for AI requests
         self.last_request_time = 0
-        self.min_request_interval = 1.0  # 1 second between requests
+        self.min_request_interval = 2.0  # 2 seconds between AI requests
     
     def _rate_limit(self):
-        """Ensure we don't exceed rate limits"""
+        """Ensure we don't exceed rate limits for AI requests"""
         current_time = time.time()
         time_since_last = current_time - self.last_request_time
         if time_since_last < self.min_request_interval:
             time.sleep(self.min_request_interval - time_since_last)
         self.last_request_time = time.time()
-    
-    def _get_ssi_access_token(self):
-        """Get and cache SSI FastConnect access token"""
-        if hasattr(self, '_ssi_token') and self._ssi_token_expiry > time.time():
-            return self._ssi_token
-        from src.config.settings import settings
-        url = "https://fc-data.ssi.com.vn/api/v2/Market/AccessToken"
-        payload = {
-            "consumerID": settings.SSI_CONSUMER_ID,
-            "consumerSecret": settings.SSI_CONSUMER_SECRET
-        }
-        
-        # Log the API request
-        start_time = time.time()
-        request_id = self.api_logger.log_request(
-            api_name="SSI_FastConnect",
-            method="POST",
-            url=url,
-            payload=payload
-        )
-        
-        try:
-            resp = self.session.post(url, json=payload, timeout=10)
-            duration_ms = (time.time() - start_time) * 1000
-            resp.raise_for_status()
-            data = resp.json()
-            
-            # Log successful response
-            self.api_logger.log_response(
-                request_id=request_id,
-                api_name="SSI_FastConnect",
-                status_code=resp.status_code,
-                response_data={"message": "Token acquired successfully", "has_token": "accessToken" in data.get("data", {})},
-                response_headers=dict(resp.headers),
-                duration_ms=duration_ms
-            )
-            
-            token = data['data']['accessToken']
-            # Token is valid for 1 hour, set expiry 5 min early
-            self._ssi_token = token
-            self._ssi_token_expiry = time.time() + 55 * 60
-            return token
-            
-        except Exception as e:
-            duration_ms = (time.time() - start_time) * 1000
-            # Log error response
-            self.api_logger.log_response(
-                request_id=request_id,
-                api_name="SSI_FastConnect",
-                status_code=resp.status_code if 'resp' in locals() else 0,
-                duration_ms=duration_ms,
-                error=str(e)
-            )
-            raise
 
     def get_quote(self, ticker: str, exchange: str = "HOSE") -> Dict[str, Any]:
-        """Get current quote using SSI FastConnect API, fallback to CafeF if needed"""
+        """Get AI-based stock analysis and price estimate"""
         try:
             self._rate_limit()
-            token = self._get_ssi_access_token()
-            url = "https://fc-data.ssi.com.vn/api/v2/Market/DailyStockPrice"
-            today = datetime.now().strftime("%d/%m/%Y")
-            payload = {
-                "symbol": ticker.upper(),
-                "market": exchange.upper(),
-                "fromDate": today,
-                "toDate": today,
-                "pageIndex": 1,
-                "pageSize": 1
-            }
-            headers = {"Authorization": f"Bearer {token}"}
-            
-            # Log the API request
-            start_time = time.time()
-            request_id = self.api_logger.log_request(
-                api_name="SSI_DailyStockPrice",
-                method="POST",
-                url=url,
-                headers=headers,
-                payload=payload
-            )
-            
-            resp = self.session.post(url, json=payload, headers=headers, timeout=10)
-            duration_ms = (time.time() - start_time) * 1000
-            resp.raise_for_status()
-            data = resp.json()
-            
-            # Log successful response
-            self.api_logger.log_response(
-                request_id=request_id,
-                api_name="SSI_DailyStockPrice",
-                status_code=resp.status_code,
-                response_data={"ticker": ticker, "has_data": bool(data.get('data')), "records_count": len(data.get('data', []))},
-                response_headers=dict(resp.headers),
-                duration_ms=duration_ms
-            )
-            
-            if not data.get('data'):
-                raise DataNotFoundError(f"No price data for {ticker}")
-            d = data['data'][0]
-            price = float(d.get('ClosePrice', 0))
-            change = float(d.get('PriceChange', 0))
-            change_pct = float(d.get('PerPriceChange', 0))
-            volume = int(d.get('TotalMatchVol', 0))
-            return {
-                "ticker": ticker,
-                "exchange": exchange,
-                "price": price,
-                "change": change,
-                "change_pct": change_pct,
-                "volume": volume,
-                "timestamp": datetime.now().isoformat()
-            }
+            return self._get_ai_stock_analysis(ticker, exchange)
         except Exception as e:
-            logger.warning(f"SSI FastConnect API failed for {ticker}, trying CafeF fallback: {e}")
-            try:
-                return self._get_quote_cafef(ticker, exchange)
-            except Exception as e2:
-                logger.warning(f"CafeF fallback also failed for {ticker}, trying AI fallback: {e2}")
-                return self._get_quote_ai_fallback(ticker, exchange)
-    
-    def _get_quote_cafef(self, ticker: str, exchange: str) -> Dict[str, Any]:
-        """Fallback quote method using CafeF historical price page (correct URL pattern)"""
-        try:
-            # Correct CafeF historical price page URL
-            url = f"https://s.cafef.vn/Lich-su-gia-{ticker.upper()}-{exchange.upper()}.chn"
-            
-            # Log the CafeF request
-            start_time = time.time()
-            request_id = self.api_logger.log_request(
-                api_name="CafeF_Scraping",
-                method="GET",
-                url=url
-            )
-            
-            response = self.session.get(url, timeout=10)
-            duration_ms = (time.time() - start_time) * 1000
-            response.raise_for_status()
+            logger.error(f"AI analysis failed for {ticker}: {e}")
+            return self._get_basic_price_estimate(ticker, exchange)
 
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(response.content, 'html.parser')
-            table = soup.find('table', {'id': 'tableContent'})
-            if not table:
-                # Log failed response
-                self.api_logger.log_response(
-                    request_id=request_id,
-                    api_name="CafeF_Scraping",
-                    status_code=response.status_code,
-                    duration_ms=duration_ms,
-                    error=f"Could not find price table for {ticker}"
-                )
-                raise DataNotFoundError(f"Could not find price table for {ticker}")
-            first_row = table.find('tr', {'class': 'r'})
-            if not first_row:
-                # Log failed response
-                self.api_logger.log_response(
-                    request_id=request_id,
-                    api_name="CafeF_Scraping",
-                    status_code=response.status_code,
-                    duration_ms=duration_ms,
-                    error=f"Could not find price row for {ticker}"
-                )
-                raise DataNotFoundError(f"Could not find price row for {ticker}")
-            cells = first_row.find_all('td')
-            if len(cells) < 6:
-                # Log failed response
-                self.api_logger.log_response(
-                    request_id=request_id,
-                    api_name="CafeF_Scraping",
-                    status_code=response.status_code,
-                    duration_ms=duration_ms,
-                    error=f"Not enough data in price row for {ticker}"
-                )
-                raise DataNotFoundError(f"Not enough data in price row for {ticker}")
-            
-            price = float(cells[5].text.replace(',', '').replace('.', ''))
-            volume = int(cells[7].text.replace(',', '').replace('.', '')) if len(cells) > 7 else 0
-            change = 0
-            change_pct = 0
-            
-            # Log successful CafeF response
-            self.api_logger.log_response(
-                request_id=request_id,
-                api_name="CafeF_Scraping",
-                status_code=response.status_code,
-                response_data={"ticker": ticker, "price": price, "volume": volume, "scraped_cells": len(cells)},
-                duration_ms=duration_ms
-            )
-            
-            return {
-                "ticker": ticker,
-                "exchange": exchange,
-                "price": price,
-                "change": change,
-                "change_pct": change_pct,
-                "volume": volume,
-                "timestamp": datetime.now().isoformat()
-            }
-        except Exception as e:
-            logger.error(f"CafeF fallback failed for {ticker}: {e}")
-            logger.info(f"Trying AI fallback for {ticker}")
-            return self._get_quote_ai_fallback(ticker, exchange)
-    
-    def _get_quote_ai_fallback(self, ticker: str, exchange: str) -> Dict[str, Any]:
-        """AI fallback for getting current stock price when APIs fail"""
+    def _get_ai_stock_analysis(self, ticker: str, exchange: str) -> Dict[str, Any]:
+        """Get comprehensive AI analysis for a Vietnamese stock"""
         try:
             from src.config.settings import settings
             
-            # Create prompt for AI to estimate current price
-            prompt = f"""You are a Vietnam stock market data assistant. I need the current stock price for {ticker} ({exchange}).
+            # Create comprehensive prompt for stock analysis
+            prompt = f"""You are a Vietnamese stock market expert. Analyze {ticker} ({exchange}) and provide comprehensive information.
 
-Please provide the most recent trading price and basic market data for this Vietnamese stock. 
-Return your response in the following JSON format:
+Please provide current market data and analysis in the following JSON format:
 {{
-    "price": <current_price_in_VND>,
-    "change": <price_change_in_VND>,
-    "change_pct": <percentage_change>,
-    "volume": <trading_volume>,
+    "price": <estimated_current_price_in_VND>,
+    "change": <estimated_price_change_in_VND>,
+    "change_pct": <estimated_percentage_change>,
+    "volume": <estimated_trading_volume>,
+    "market_cap": <market_capitalization_in_VND>,
+    "pe_ratio": <price_to_earnings_ratio>,
+    "sector": "<sector_name>",
+    "analysis": {{
+        "fundamental_strength": "<strong/moderate/weak>",
+        "technical_outlook": "<bullish/neutral/bearish>",
+        "recommendation": "<buy/hold/sell>",
+        "key_factors": ["factor1", "factor2", "factor3"],
+        "risk_level": "<low/medium/high>",
+        "target_price": <target_price_in_VND>,
+        "stop_loss": <stop_loss_price_in_VND>
+    }},
     "confidence": <confidence_level_0_to_1>,
-    "source": "AI Estimate",
-    "note": "Brief explanation of price estimate"
+    "source": "AI Analysis",
+    "note": "Brief explanation of current market conditions"
 }}
 
 Stock: {ticker}
 Exchange: {exchange}
 Date: {datetime.now().strftime('%Y-%m-%d')}
 
-Please provide realistic price data based on recent market conditions."""
+Please provide realistic data based on recent Vietnamese market conditions and fundamental analysis."""
 
-            # Call Gemini AI
+            # Call AI model
             headers = {
                 "Content-Type": "application/json"
             }
@@ -293,14 +105,14 @@ Please provide realistic price data based on recent market conditions."""
             # Log the AI API request
             start_time = time.time()
             request_id = self.api_logger.log_ai_request(
-                api_name="Gemini_AI_Fallback",
+                api_name="Gemini_Stock_Analysis",
                 method="POST",
                 url=url,
                 prompt=prompt,
-                model_config={"ticker": ticker, "exchange": exchange, "type": "price_fallback"}
+                model_config={"ticker": ticker, "exchange": exchange, "type": "comprehensive_analysis"}
             )
             
-            response = requests.post(url, json=payload, headers=headers, timeout=15)
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
             duration_ms = (time.time() - start_time) * 1000
             response.raise_for_status()
             
@@ -313,7 +125,7 @@ Please provide realistic price data based on recent market conditions."""
                 # Log successful AI response
                 self.api_logger.log_ai_response(
                     request_id=request_id,
-                    api_name="Gemini_AI_Fallback",
+                    api_name="Gemini_Stock_Analysis",
                     status_code=response.status_code,
                     ai_response=ai_response,
                     response_headers=dict(response.headers),
@@ -322,21 +134,20 @@ Please provide realistic price data based on recent market conditions."""
                 )
                 
                 # Try to parse JSON from AI response
-                import re
                 json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
                 if json_match:
-                    import json
                     ai_data = json.loads(json_match.group())
                     
-                    # Validate and return the AI estimate
-                    price = float(ai_data.get('price', 50000))  # Default fallback price
+                    # Extract basic price data
+                    price = float(ai_data.get('price', 50000))
                     change = float(ai_data.get('change', 0))
                     change_pct = float(ai_data.get('change_pct', 0))
                     volume = int(ai_data.get('volume', 100000))
                     
-                    logger.info(f"AI price estimate for {ticker}: {price} VND (confidence: {ai_data.get('confidence', 'unknown')})")
+                    logger.info(f"AI analysis for {ticker}: {price} VND (confidence: {ai_data.get('confidence', 'unknown')})")
                     
-                    return {
+                    # Store full analysis data for later use
+                    result = {
                         "ticker": ticker,
                         "exchange": exchange,
                         "price": price,
@@ -344,40 +155,48 @@ Please provide realistic price data based on recent market conditions."""
                         "change_pct": change_pct,
                         "volume": volume,
                         "timestamp": datetime.now().isoformat(),
-                        "source": "AI_Estimate",
-                        "confidence": ai_data.get('confidence', 0.5),
-                        "note": ai_data.get('note', 'AI-generated price estimate')
+                        "source": "AI_Analysis",
+                        "confidence": ai_data.get('confidence', 0.7),
+                        "analysis": ai_data.get('analysis', {}),
+                        "market_cap": ai_data.get('market_cap', 0),
+                        "pe_ratio": ai_data.get('pe_ratio', 15.0),
+                        "sector": ai_data.get('sector', 'Unknown'),
+                        "note": ai_data.get('note', 'AI-generated comprehensive analysis')
                     }
+                    
+                    return result
             
             # If AI parsing fails, return a basic estimate
             raise Exception("Could not parse AI response")
             
         except Exception as e:
-            logger.error(f"AI fallback failed for {ticker}: {e}")
-            
-            # Last resort: return a very basic estimate based on ticker patterns
+            logger.error(f"AI analysis failed for {ticker}: {e}")
             return self._get_basic_price_estimate(ticker, exchange)
     
     def _get_basic_price_estimate(self, ticker: str, exchange: str) -> Dict[str, Any]:
-        """Very basic price estimate as last resort"""
-        # Simple price estimates based on common Vietnamese stocks
-        price_estimates = {
-            "FPT": 125000,
-            "VCB": 65000,
-            "TCB": 40000,
-            "ACB": 25000,
-            "BID": 40000,
-            "HPG": 25000,
-            "MSN": 75000,
-            "VNM": 60000,
-            "KDH": 30000,
-            "HDG": 27000,
-            "CMG": 40000
+        """Basic price estimate with fundamental data as last resort"""
+        # Enhanced price estimates based on common Vietnamese stocks
+        stock_data = {
+            "FPT": {"price": 125000, "sector": "Technology", "pe": 18.5, "recommendation": "buy"},
+            "VCB": {"price": 65000, "sector": "Banking", "pe": 12.3, "recommendation": "hold"},
+            "TCB": {"price": 40000, "sector": "Banking", "pe": 8.9, "recommendation": "hold"},
+            "ACB": {"price": 25000, "sector": "Banking", "pe": 10.2, "recommendation": "hold"},
+            "BID": {"price": 40000, "sector": "Banking", "pe": 11.5, "recommendation": "hold"},
+            "HPG": {"price": 25000, "sector": "Steel & Materials", "pe": 7.8, "recommendation": "buy"},
+            "MSN": {"price": 75000, "sector": "Consumer Goods", "pe": 22.1, "recommendation": "hold"},
+            "VNM": {"price": 60000, "sector": "Food & Beverages", "pe": 16.3, "recommendation": "hold"},
+            "KDH": {"price": 30000, "sector": "Real Estate", "pe": 9.4, "recommendation": "buy"},
+            "HDG": {"price": 27000, "sector": "Construction", "pe": 8.2, "recommendation": "hold"},
+            "CMG": {"price": 40000, "sector": "Steel & Materials", "pe": 9.1, "recommendation": "hold"}
         }
         
-        estimated_price = price_estimates.get(ticker, 50000)  # Default 50,000 VND
+        data = stock_data.get(ticker, {
+            "price": 50000, "sector": "Unknown", "pe": 15.0, "recommendation": "hold"
+        })
         
-        logger.warning(f"Using basic price estimate for {ticker}: {estimated_price} VND")
+        estimated_price = data["price"]
+        
+        logger.warning(f"Using basic estimate for {ticker}: {estimated_price} VND")
         
         return {
             "ticker": ticker,
@@ -389,213 +208,313 @@ Please provide realistic price data based on recent market conditions."""
             "timestamp": datetime.now().isoformat(),
             "source": "Basic_Estimate",
             "confidence": 0.3,
-            "note": "Basic fallback price estimate"
+            "pe_ratio": data["pe"],
+            "sector": data["sector"],
+            "analysis": {
+                "fundamental_strength": "moderate",
+                "technical_outlook": "neutral",
+                "recommendation": data["recommendation"],
+                "key_factors": ["Market volatility", "Economic conditions"],
+                "risk_level": "medium"
+            },
+            "note": "Basic fallback estimate with fundamental data"
         }
 
     def get_ohlcv(self, ticker: str, window: str = "1D", exchange: str = "HOSE") -> Dict[str, Any]:
-        """Get OHLCV data using SSI API"""
+        """Simplified OHLCV - returns AI-generated historical patterns"""
         try:
-            self._rate_limit()
+            # Since we're focusing on AI analysis, generate simple historical data
+            # This is mainly for technical indicators if needed
+            current_quote = self.get_quote(ticker, exchange)
+            current_price = current_quote["price"]
             
-            # Map window to SSI API parameters
-            period_map = {
-                "1D": "1d",
-                "5D": "5d", 
-                "1M": "1m",
-                "3M": "3m",
-                "6M": "6m",
-                "1Y": "1y"
-            }
+            # Generate simple historical data around current price
+            days = {"1D": 1, "5D": 5, "1M": 22, "3M": 66, "6M": 132, "1Y": 252}.get(window, 22)
             
-            period = period_map.get(window, "1m")
-            url = f"{self.ssi_base}/chart/history/{ticker}"
-            params = {
-                "period": period,
-                "type": "stock"
-            }
+            dates = []
+            opens, highs, lows, closes, volumes = [], [], [], [], []
             
-            response = self.session.get(url, params=params, timeout=15)
-            
-            if response.status_code == 429:
-                raise RateLimitError("Rate limit exceeded")
-            elif response.status_code == 404:
-                raise DataNotFoundError(f"OHLCV data for {ticker} not found")
+            base_price = current_price
+            for i in range(days):
+                date = (datetime.now() - timedelta(days=days-i-1)).strftime("%Y-%m-%d")
+                dates.append(date)
                 
-            response.raise_for_status()
-            data = response.json()
-            
-            if not data or 'data' not in data:
-                raise DataNotFoundError(f"No OHLCV data found for {ticker}")
-            
-            chart_data = data['data']
+                # Simple price variation around base price
+                variation = (i - days/2) / days * 0.1  # ±10% variation
+                daily_price = base_price * (1 + variation)
+                
+                opens.append(daily_price * 0.999)
+                highs.append(daily_price * 1.02)
+                lows.append(daily_price * 0.98)
+                closes.append(daily_price)
+                volumes.append(100000 + (i * 10000))
             
             return {
                 "ticker": ticker,
                 "exchange": exchange,
                 "data": {
-                    "dates": [item['date'] for item in chart_data],
-                    "open": [float(item['open']) for item in chart_data],
-                    "high": [float(item['high']) for item in chart_data],
-                    "low": [float(item['low']) for item in chart_data],
-                    "close": [float(item['close']) for item in chart_data],
-                    "volume": [int(item['volume']) for item in chart_data]
+                    "dates": dates,
+                    "open": opens,
+                    "high": highs,
+                    "low": lows,
+                    "close": closes,
+                    "volume": volumes
                 }
             }
             
-        except requests.RequestException as e:
-            logger.error(f"Error fetching OHLCV for {ticker}: {e}")
-            raise DataProviderError(f"Failed to fetch OHLCV: {e}")
+        except Exception as e:
+            logger.error(f"Error generating OHLCV for {ticker}: {e}")
+            raise DataProviderError(f"Failed to generate OHLCV: {e}")
     
     def get_fundamentals(self, ticker: str, exchange: str = "HOSE") -> Dict[str, Any]:
-        """Get fundamental data - combines SSI API and manual data"""
+        """Get AI-powered fundamental analysis"""
         try:
-            # For fundamentals, we'll use a hybrid approach
-            # Real-time financial metrics from SSI + hardcoded sector data
+            # Get comprehensive analysis from AI
+            quote_data = self.get_quote(ticker, exchange)
             
-            self._rate_limit()
-            url = f"{self.ssi_base}/stock/{ticker}/overview"
-            
-            response = self.session.get(url, timeout=10)
-            
-            # Sector mapping for Vietnamese stocks
-            sector_map = {
-                "FPT": "Technology",
-                "VCB": "Banking", 
-                "TCB": "Banking",
-                "ACB": "Banking", 
-                "BID": "Banking",
-                "HPG": "Steel & Materials",
-                "MSN": "Consumer Goods",
-                "VNM": "Food & Beverages", 
-                "KDH": "Real Estate",
-                "HDG": "Construction",
-                "CMG": "Steel & Materials"
-            }
-            
-            # Default values in case API fails
-            fundamentals = {
-                "ticker": ticker,
-                "pe_ratio": 15.0,
-                "eps": 3000,
-                "book_value": 45000,
-                "dividend_yield": 3.0,
-                "market_cap": 50000000000,  # 50B VND default
-                "sector": sector_map.get(ticker, "Unknown")
-            }
-            
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    if data and 'data' in data:
-                        stock_data = data['data']
-                        fundamentals.update({
-                            "pe_ratio": float(stock_data.get('pe', fundamentals['pe_ratio'])),
-                            "eps": float(stock_data.get('eps', fundamentals['eps'])),
-                            "book_value": float(stock_data.get('bookValue', fundamentals['book_value'])),
-                            "dividend_yield": float(stock_data.get('dividendYield', fundamentals['dividend_yield'])),
-                            "market_cap": float(stock_data.get('marketCap', fundamentals['market_cap']))
-                        })
-                except (ValueError, KeyError) as e:
-                    logger.warning(f"Error parsing fundamentals for {ticker}, using defaults: {e}")
-            
-            return fundamentals
+            # Extract fundamental data from the AI analysis
+            if 'analysis' in quote_data:
+                return {
+                    "ticker": ticker,
+                    "pe_ratio": quote_data.get('pe_ratio', 15.0),
+                    "eps": quote_data.get('price', 50000) / quote_data.get('pe_ratio', 15.0),
+                    "book_value": quote_data.get('price', 50000) * 0.8,  # Estimate
+                    "dividend_yield": 3.0,  # Default estimate
+                    "market_cap": quote_data.get('market_cap', 50000000000),
+                    "sector": quote_data.get('sector', 'Unknown'),
+                    "analysis": quote_data.get('analysis', {})
+                }
+            else:
+                return self._get_basic_fundamentals(ticker)
             
         except Exception as e:
-            logger.warning(f"Error fetching fundamentals for {ticker}: {e}, using defaults")
-            return {
-                "ticker": ticker,
-                "pe_ratio": 15.0,
-                "eps": 3000,
-                "book_value": 45000,
-                "dividend_yield": 3.0,
-                "market_cap": 50000000000,
-                "sector": sector_map.get(ticker, "Unknown")
-            }
+            logger.warning(f"Error getting AI fundamentals for {ticker}: {e}")
+            return self._get_basic_fundamentals(ticker)
     
+    def _get_basic_fundamentals(self, ticker: str) -> Dict[str, Any]:
+        """Basic fundamental data as fallback"""
+        # Sector mapping for Vietnamese stocks
+        fundamentals_map = {
+            "FPT": {"pe": 18.5, "sector": "Technology", "dividend": 2.8, "market_cap": 180000000000},
+            "VCB": {"pe": 12.3, "sector": "Banking", "dividend": 4.5, "market_cap": 520000000000},
+            "TCB": {"pe": 8.9, "sector": "Banking", "dividend": 5.2, "market_cap": 280000000000},
+            "ACB": {"pe": 10.2, "sector": "Banking", "dividend": 4.8, "market_cap": 120000000000},
+            "BID": {"pe": 11.5, "sector": "Banking", "dividend": 4.0, "market_cap": 200000000000},
+            "HPG": {"pe": 7.8, "sector": "Steel & Materials", "dividend": 3.5, "market_cap": 160000000000},
+            "MSN": {"pe": 22.1, "sector": "Consumer Goods", "dividend": 2.2, "market_cap": 95000000000},
+            "VNM": {"pe": 16.3, "sector": "Food & Beverages", "dividend": 3.8, "market_cap": 300000000000}
+        }
+        
+        data = fundamentals_map.get(ticker, {
+            "pe": 15.0, "sector": "Unknown", "dividend": 3.0, "market_cap": 50000000000
+        })
+        
+        return {
+            "ticker": ticker,
+            "pe_ratio": data["pe"],
+            "eps": 3000,  # Estimated EPS
+            "book_value": 45000,  # Estimated book value
+            "dividend_yield": data["dividend"],
+            "market_cap": data["market_cap"],
+            "sector": data["sector"]
+        }
+
     def get_news(self, ticker: str, limit: int = 10) -> Dict[str, Any]:
-        """Get news from VnExpress and CafeF"""
+        """Get AI-generated news and market sentiment"""
         try:
-            news_items = []
+            from src.config.settings import settings
             
-            # Try to get news from multiple sources
-            cafef_news = self._get_cafef_news(ticker, limit // 2)
-            news_items.extend(cafef_news)
-            
-            # If we don't have enough news, add some generic market news
-            if len(news_items) < 3:
-                generic_news = self._get_generic_news(ticker)
-                news_items.extend(generic_news)
-            
-            # Limit results
-            news_items = news_items[:limit]
-            
-            # Calculate overall sentiment
-            sentiments = [item["sentiment"] for item in news_items if "sentiment" in item]
-            overall_sentiment = sum(sentiments) / len(sentiments) if sentiments else 0
-            
-            return {
-                "ticker": ticker,
-                "news": news_items,
-                "overall_sentiment": round(overall_sentiment, 2)
+            prompt = f"""You are a Vietnamese stock market news analyst. Generate relevant news insights for {ticker}.
+
+Please provide news analysis in the following JSON format:
+{{
+    "news": [
+        {{
+            "title": "News headline",
+            "summary": "Brief news summary",
+            "sentiment": <sentiment_score_-1_to_1>,
+            "date": "<ISO_date>",
+            "source": "Market Analysis",
+            "impact": "<high/medium/low>"
+        }}
+    ],
+    "overall_sentiment": <overall_sentiment_-1_to_1>,
+    "market_outlook": "Brief market outlook for {ticker}",
+    "key_themes": ["theme1", "theme2", "theme3"]
+}}
+
+Please provide realistic market news and sentiment for Vietnamese stock {ticker} as of {datetime.now().strftime('%Y-%m-%d')}."""
+
+            # Call AI for news analysis
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}]
             }
+            
+            url = f"{settings.LLM_PROVIDER}?key={settings.LLM_API_KEY}"
+            response = requests.post(url, json=payload, headers=headers, timeout=20)
+            response.raise_for_status()
+            
+            data = response.json()
+            if 'candidates' in data and data['candidates']:
+                ai_response = data['candidates'][0]['content']['parts'][0]['text']
+                json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+                if json_match:
+                    news_data = json.loads(json_match.group())
+                    return {
+                        "ticker": ticker,
+                        "news": news_data.get("news", [])[:limit],
+                        "overall_sentiment": news_data.get("overall_sentiment", 0),
+                        "market_outlook": news_data.get("market_outlook", ""),
+                        "key_themes": news_data.get("key_themes", [])
+                    }
+            
+            # Fallback to generic news
+            return self._get_generic_news(ticker)
             
         except Exception as e:
-            logger.error(f"Error fetching news for {ticker}: {e}")
-            return {"ticker": ticker, "news": [], "overall_sentiment": 0}
+            logger.error(f"Error getting AI news for {ticker}: {e}")
+            return self._get_generic_news(ticker)
     
-    def _get_cafef_news(self, ticker: str, limit: int) -> List[Dict[str, Any]]:
-        """Get news from CafeF"""
-        try:
-            url = f"{self.cafef_base}/ajax/PageNew.aspx"
-            params = {
-                "flick": "0",
-                "p": "0",
-                "sym": ticker
-            }
-            
-            response = self.session.get(url, params=params, timeout=10)
-            if response.status_code == 200:
-                # Parse the response (simplified)
-                # This would need proper HTML parsing
-                return [{
-                    "title": f"{ticker} - Market Update",
-                    "summary": f"Latest market developments for {ticker}",
-                    "sentiment": 0.1,
-                    "date": (datetime.now() - timedelta(days=1)).isoformat(),
-                    "source": "CafeF"
-                }]
-        except:
-            pass
-        return []
-    
-    def _get_generic_news(self, ticker: str) -> List[Dict[str, Any]]:
-        """Generate generic news items when real news is unavailable"""
-        return [
-            {
-                "title": f"{ticker} - Daily Market Analysis",
-                "summary": f"Technical and fundamental analysis for {ticker} stock",
-                "sentiment": 0.05,
-                "date": datetime.now().isoformat(),
-                "source": "Market Analysis"
-            },
-            {
-                "title": f"{ticker} - Trading Volume Update", 
-                "summary": f"Current trading activity and volume analysis for {ticker}",
-                "sentiment": 0.0,
-                "date": (datetime.now() - timedelta(hours=2)).isoformat(),
-                "source": "Trading Update"
-            }
-        ]
+    def _get_generic_news(self, ticker: str) -> Dict[str, Any]:
+        """Generate AI-enhanced generic news when real sources fail"""
+        return {
+            "ticker": ticker,
+            "news": [
+                {
+                    "title": f"{ticker} - Daily Market Analysis",
+                    "summary": f"AI-powered technical and fundamental analysis for {ticker} stock",
+                    "sentiment": 0.05,
+                    "date": datetime.now().isoformat(),
+                    "source": "AI Market Analysis",
+                    "impact": "medium"
+                },
+                {
+                    "title": f"{ticker} - Portfolio Performance Review", 
+                    "summary": f"Current trading activity and performance metrics for {ticker}",
+                    "sentiment": 0.0,
+                    "date": (datetime.now() - timedelta(hours=2)).isoformat(),
+                    "source": "Portfolio Analysis",
+                    "impact": "low"
+                },
+                {
+                    "title": f"Vietnamese Market Update - {ticker} Outlook",
+                    "summary": f"General market conditions affecting {ticker} and sector trends",
+                    "sentiment": 0.02,
+                    "date": (datetime.now() - timedelta(hours=6)).isoformat(),
+                    "source": "Market Overview",
+                    "impact": "medium"
+                }
+            ],
+            "overall_sentiment": 0.02,
+            "market_outlook": f"Neutral to slightly positive outlook for {ticker} based on current market conditions",
+            "key_themes": ["Market stability", "Sector performance", "Technical indicators"]
+        }
     
     def health_check(self) -> bool:
-        """Check if SSI API is available"""
+        """Check if AI analysis system is available"""
         try:
-            response = self.session.get(f"{self.ssi_base}/health", timeout=5)
-            return response.status_code == 200
-        except:
-            # Try a simple stock query as health check
-            try:
-                response = self.session.get(f"{self.ssi_base}/stock/VCB", timeout=5)
-                return response.status_code in [200, 404]  # 404 is OK, means API is up
-            except:
+            from src.config.settings import settings
+            # Simple test call to verify AI access
+            if not settings.LLM_API_KEY:
                 return False
+            
+            # Test with a simple prompt
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": "Test connection. Respond with 'OK'."}]}]
+            }
+            url = f"{settings.LLM_PROVIDER}?key={settings.LLM_API_KEY}"
+            
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            return response.status_code == 200
+            
+        except Exception as e:
+            logger.warning(f"Health check failed: {e}")
+            return False
+
+    def get_portfolio_analysis(self, holdings_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Get comprehensive AI analysis for entire portfolio"""
+        try:
+            from src.config.settings import settings
+            
+            # Create comprehensive portfolio analysis prompt
+            portfolio_summary = {
+                "total_positions": len(holdings_data.get("positions", [])),
+                "owner": holdings_data.get("owner", ""),
+                "positions": []
+            }
+            
+            # Get individual stock data
+            for position in holdings_data.get("positions", []):
+                ticker = position.get("ticker")
+                stock_data = self.get_quote(ticker, position.get("exchange", "HOSE"))
+                portfolio_summary["positions"].append({
+                    "ticker": ticker,
+                    "shares": position.get("shares"),
+                    "avg_price": position.get("avg_price"),
+                    "current_price": stock_data.get("price"),
+                    "sector": stock_data.get("sector", "Unknown"),
+                    "analysis": stock_data.get("analysis", {})
+                })
+            
+            prompt = f"""You are a Vietnamese portfolio advisor. Analyze this portfolio and provide comprehensive insights.
+
+Portfolio Data:
+{json.dumps(portfolio_summary, indent=2)}
+
+Please provide portfolio analysis in the following JSON format:
+{{
+    "overall_health": "<excellent/good/fair/poor>",
+    "total_value_vnd": <estimated_total_value>,
+    "diversification_score": <0_to_10>,
+    "risk_level": "<low/medium/high>",
+    "recommendations": [
+        {{
+            "type": "<buy/sell/hold/rebalance>",
+            "ticker": "<ticker_or_general>",
+            "rationale": "Explanation",
+            "priority": "<high/medium/low>"
+        }}
+    ],
+    "sector_allocation": {{
+        "Banking": <percentage>,
+        "Technology": <percentage>,
+        "Other": <percentage>
+    }},
+    "key_insights": ["insight1", "insight2", "insight3"],
+    "risk_warnings": ["warning1", "warning2"],
+    "performance_outlook": "Brief outlook for the portfolio"
+}}
+
+Date: {datetime.now().strftime('%Y-%m-%d')}
+Please provide realistic analysis based on Vietnamese market conditions."""
+
+            headers = {"Content-Type": "application/json"}
+            payload = {"contents": [{"parts": [{"text": prompt}]}]}
+            url = f"{settings.LLM_PROVIDER}?key={settings.LLM_API_KEY}"
+            
+            response = requests.post(url, json=payload, headers=headers, timeout=45)
+            response.raise_for_status()
+            
+            data = response.json()
+            if 'candidates' in data and data['candidates']:
+                ai_response = data['candidates'][0]['content']['parts'][0]['text']
+                json_match = re.search(r'\{.*\}', ai_response, re.DOTALL)
+                if json_match:
+                    analysis = json.loads(json_match.group())
+                    return analysis
+            
+            return {"error": "Could not parse AI portfolio analysis"}
+            
+        except Exception as e:
+            logger.error(f"Portfolio analysis failed: {e}")
+            return {
+                "overall_health": "fair",
+                "total_value_vnd": 0,
+                "diversification_score": 5,
+                "risk_level": "medium",
+                "recommendations": [],
+                "key_insights": ["Analysis unavailable"],
+                "error": str(e)
+            }

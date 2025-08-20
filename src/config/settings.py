@@ -1,6 +1,7 @@
 import os
 from typing import Optional
-from pydantic import BaseSettings, validator
+from pydantic import validator
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     
     # AI/LLM Settings
     LLM_PROVIDER: str = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-    LLM_API_KEY: Optional[str] = None
+    LLM_API_KEY: Optional[str] = "AIzaSyBdk8l5xWHr_uQTT0TansUN6ZIpguh6QKM"
     LLM_TEMPERATURE: float = 0.3
     LLM_MAX_TOKENS: int = 500
     
